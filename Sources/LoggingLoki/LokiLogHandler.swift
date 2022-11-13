@@ -14,21 +14,29 @@ public struct LokiLogHandler: LogHandler {
 
     internal init(label: String, lokiURL: URL, session: LokiSession) {
         self.label = label
+        #if os(Linux)
+        self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
+        #else
         if #available(macOS 13.0, *) {
             self.lokiURL = lokiURL.appending(path: "/loki/api/v1/push")
         } else {
             self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
         }
+        #endif
         self.session = session
     }
 
     public init(label: String, lokiURL: URL) {
         self.label = label
+        #if os(Linux)
+        self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
+        #else
         if #available(macOS 13.0, *) {
             self.lokiURL = lokiURL.appending(path: "/loki/api/v1/push")
         } else {
             self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
         }
+        #endif
         self.session = URLSession(configuration: .ephemeral)
     }
 
