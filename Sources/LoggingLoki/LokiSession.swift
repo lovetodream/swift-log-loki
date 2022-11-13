@@ -19,12 +19,29 @@ extension LokiSession {
 extension URLSession: LokiSession {
     func send(_ logs: [LokiLog], with labels: LokiLabels, url: URL, completion: @escaping (Result<StatusCode, Error>) -> ()) {
         do {
-            let data = try JSONEncoder().encode(LokiRequest(streams: [.init(logs, with: labels)]))
+//            let data = try JSONEncoder().encode(LokiRequest(streams: [.init(logs, with: labels)]))
+
+            let proto = Logproto_PushRequest.with { request in
+                request.streams = [
+                    .with { stream in
+                        stream.labels = "{" + labels.map { "\($0)=\($1)" }.joined(separator: ",") + "}"
+                        stream.entries = logs.map { timestamp, message in
+                            Logproto_EntryAdapter.with { entry in
+                                entry.timestamp = .with {
+                                    $0.seconds = Int64(timestamp.timeIntervalSince1970.rounded(.down))
+                                    $0.nanos = Int32(timestamp.timeIntervalSince1970 * 1_000_000_000) % 1_000_000_000
+                                }
+                                entry.line = message
+                            }
+                        }
+                    }
+                ]
+            }
 
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
-            request.httpBody = data
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try proto.serializedData()
+            request.setValue("application/x-protobuf", forHTTPHeaderField: "Content-Type")
 
             let task = dataTask(with: request) { data, response, error in
                 if let error = error {

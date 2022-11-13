@@ -1,0 +1,10 @@
+{
+    "protoc": {
+        "path": "/opt/homebrew/bin/protoc",
+        "compile_on_save": true,
+        "options": [
+            "--proto_path=/Users/timozacherl/Projects/swift-log-loki/Sources/LoggingLoki/Proto",
+            "--swift_out=gen/swift"
+        ]
+    }
+}
