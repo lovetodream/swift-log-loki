@@ -6,6 +6,7 @@ This library can be used as an implementation of Apple's [swift-log](https://git
 
 ## Features
 
+- Supports Darwin (macOS), Linux platforms, iOS, watchOS and tvOS
 - Different logging levels such as `trace`, `debug`, `info`, `notice`, `warning`, `error` and `critical`
 
 ## Add dependency
