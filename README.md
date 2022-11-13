@@ -1,6 +1,7 @@
 # SwiftLogLoki
 
 [![Tests](https://github.com/lovetodream/swift-log-loki/actions/workflows/tests.yml/badge.svg)](https://github.com/lovetodream/swift-log-loki/actions/workflows/tests.yml)
+[![Docs](https://github.com/lovetodream/swift-log-loki/actions/workflows/deploy_docs.yml/badge.svg)](https://github.com/lovetodream/swift-log-loki/actions/workflows/deploy_docs.yml)
 
 This library can be used as an implementation of Apple's [swift-log](https://github.com/apple/swift-log) interface that captures console logs from apps or services and sends them to [Grafana Loki](https://grafana.com/oss/loki).
 
@@ -57,7 +58,7 @@ For more information about Logging in [Swift Vapor](https://vapor.codes) take a 
 
 ## API documentation
 
-WIP
+For more information visit the [API reference](https://timozacherl.com/swift-log-loki/documentation/loggingloki/).
 
 ## License
 
