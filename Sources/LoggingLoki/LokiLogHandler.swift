@@ -36,9 +36,9 @@ public struct LokiLogHandler: LogHandler {
         let prettyMetadata = metadata?.isEmpty ?? true ? prettyMetadata : prettify(self.metadata.merging(metadata!, uniquingKeysWith: { _, new in new }))
 
 
-        let labels: [String: String] = ["label": label, "source": source, "file": file, "function": function, "line": String(line)]
+        let labels: [String: String] = ["service": label, "source": source, "file": file, "function": function, "line": String(line)]
         let timestamp = Date()
-        let message = "[\(level.rawValue)]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
+        let message = "[\(level.rawValue.uppercased())]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
 
         session.send((timestamp, message), with: labels, url: lokiURL) { result in
             if case .failure(let failure) = result {
