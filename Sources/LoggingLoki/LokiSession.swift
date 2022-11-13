@@ -29,7 +29,7 @@ extension URLSession: LokiSession {
                             Logproto_EntryAdapter.with { entry in
                                 entry.timestamp = .with {
                                     $0.seconds = Int64(timestamp.timeIntervalSince1970.rounded(.down))
-                                    $0.nanos = Int32(timestamp.timeIntervalSince1970 * 1_000_000_000) % 1_000_000_000
+                                    $0.nanos = Int32(Int(timestamp.timeIntervalSince1970 * 1_000_000_000) % 1_000_000_000)
                                 }
                                 entry.line = message
                             }
