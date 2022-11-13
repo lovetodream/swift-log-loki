@@ -10,6 +10,8 @@ struct LokiStream: Encodable {
         self.values = logs.compactMap { log in
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
+            formatter.groupingSeparator = ""
+            formatter.thousandSeparator = ""
             let timestamp = Int64(log.timestamp.timeIntervalSince1970 * 1_000_000_000) as NSNumber
             guard let formattedTimestamp = formatter.string(from: timestamp) else {
                 return nil
