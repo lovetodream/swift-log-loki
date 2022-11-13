@@ -13,13 +13,7 @@ protocol LokiSession {
 extension URLSession: LokiSession {
     func send(_ logs: [LokiLog], with labels: LokiLabels, url: URL, completion: @escaping (Result<StatusCode, Error>) -> ()) {
         do {
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .custom { date, encoder in
-                var container = encoder.singleValueContainer()
-                let nanoseconds = Int64(date.timeIntervalSince1970 * 1_000_000_000)
-                try container.encode(nanoseconds)
-            }
-            let data = try encoder.encode(LokiRequest(streams: [.init(logs, with: labels)]))
+            let data = try JSONEncoder().encode(LokiRequest(streams: [.init(logs, with: labels)]))
 
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
