@@ -16,7 +16,7 @@ extension URLSession: LokiSession {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .custom { date, encoder in
                 var container = encoder.singleValueContainer()
-                let nanoseconds = Int64(date.timeIntervalSince1970 * 1000)
+                let nanoseconds = Int64(date.timeIntervalSince1970 * 1_000_000_000)
                 try container.encode(nanoseconds)
             }
             let data = try encoder.encode(LokiRequest(streams: [.init(logs, with: labels)]))
