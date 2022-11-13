@@ -6,7 +6,7 @@ import Logging
 
 public struct LokiLogHandler: LogHandler {
 
-    private let session: LokiSession
+    internal let session: LokiSession
 
     private var lokiURL: URL
 

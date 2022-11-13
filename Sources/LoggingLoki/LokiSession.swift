@@ -10,6 +10,12 @@ protocol LokiSession {
     func send(_ log: LokiLog, with labels: LokiLabels, url: URL, completion: @escaping (Result<StatusCode, Error>) -> ())
 }
 
+extension LokiSession {
+    func send(_ log: LokiLog, with labels: LokiLabels, url: URL, completion: @escaping (Result<StatusCode, Error>) -> ()) {
+        send([log], with: labels, url: url, completion: completion)
+    }
+}
+
 extension URLSession: LokiSession {
     func send(_ logs: [LokiLog], with labels: LokiLabels, url: URL, completion: @escaping (Result<StatusCode, Error>) -> ()) {
         do {
@@ -33,9 +39,5 @@ extension URLSession: LokiSession {
         } catch {
             completion(.failure(error))
         }
-    }
-
-    func send(_ log: LokiLog, with labels: LokiLabels, url: URL, completion: @escaping (Result<StatusCode, Error>) -> ()) {
-        send([log], with: labels, url: url, completion: completion)
     }
 }
