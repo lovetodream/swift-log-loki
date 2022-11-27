@@ -32,11 +32,11 @@ jobs:
     - name: Generate Docs
       uses: fwcd/swift-docc-action@v1
       with:
-        target: Snappy
+        target: LoggingLoki
         output: ./public
         transform-for-static-hosting: 'true'
         disable-indexing: 'true'
-        hosting-base-path: swift-snappy
+        hosting-base-path: swift-log-loki
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v1
       with:
