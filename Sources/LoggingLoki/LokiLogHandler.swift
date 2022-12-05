@@ -158,3 +158,57 @@ public struct LokiLogHandler: LogHandler {
         !metadata.isEmpty ? metadata.map { "\($0)=\($1)" }.joined(separator: " ") : nil
     }
 }
+
+public extension LokiLogHandler {
+    
+    
+    /// Initializes a ``LokiLogHandler`` with the provided parameters.
+    ///
+    /// The handler will send all logs it captures to the Grafana Loki instance the client has provided. If a request fails it will send a debugPrint to the the console.
+    /// The handler will not send the request again. It's basically fire and forget.
+    ///
+    /// ```swift
+    /// LoggingSystem.bootstrap {
+    ///     LokiLogHandler(
+    ///         label: $0,
+    ///         lokiURL: URL(string: "http://localhost:3100")!
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - label: client supplied string describing the logger. Should be unique but not enforced
+    ///   - lokiURL: client supplied Grafana Loki base URL
+    ///   - user: client supplied Grafana Loki user name
+    ///   - password: client supplied Grafana Loki user password
+    init(label: String, lokiURL: URL, user: String, password: String) {
+        self.init(label: label, lokiURL: lokiURL, headers: ["Authorization": "Basic \(password)"])
+    }
+}
+
+public extension LokiLogHandler {
+    
+    
+    /// Initializes a ``LokiLogHandler`` with the provided parameters.
+    ///
+    /// The handler will send all logs it captures to the Grafana Loki instance the client has provided. If a request fails it will send a debugPrint to the the console.
+    /// The handler will not send the request again. It's basically fire and forget.
+    ///
+    /// ```swift
+    /// LoggingSystem.bootstrap {
+    ///     LokiLogHandler(
+    ///         label: $0,
+    ///         lokiURL: URL(string: "http://localhost:3100")!
+    ///     )
+    /// }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - label: client supplied string describing the logger. Should be unique but not enforced
+    ///   - lokiURL: client supplied Grafana Loki base URL
+    ///   - user: client supplied Grafana Loki user name
+    ///   - password: client supplied Grafana Loki user password
+    init(label: String, lokiURL: URL, user: String, password: String) {
+        self.init(label: label, lokiURL: lokiURL, headers: ["Authorization": "Basic \(password)"])
+    }
+}

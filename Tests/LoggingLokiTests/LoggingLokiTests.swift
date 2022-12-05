@@ -5,6 +5,7 @@ import struct Logging.Logger
 class TestSession: LokiSession {
     var logs: [LokiLog]?
     var labels: LokiLabels?
+    var headers: [String: String]?
 
     func send(_ batch: Batch,
               url: URL,
