@@ -209,6 +209,7 @@ public extension LokiLogHandler {
     ///   - user: client supplied Grafana Loki user name
     ///   - password: client supplied Grafana Loki user password
     init(label: String, lokiURL: URL, user: String, password: String) {
-        self.init(label: label, lokiURL: lokiURL, headers: ["Authorization": "Basic \(password)"])
+        let string = "\(user):\(password)".data(using: .utf8)?.base64EncodedString() ?? "\(user):\(password)"
+        self.init(label: label, lokiURL: lokiURL, headers: ["Authorization": "Basic \(string)"])
     }
 }
