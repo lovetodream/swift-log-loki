@@ -107,7 +107,7 @@ public struct LokiLogHandler: LogHandler {
     ///     - function: The function the log line was emitted from.
     ///     - line: The line the log message was emitted from.
     public func log(level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?, source: String, file: String, function: String, line: UInt) {
-        var metadata = self.metadata.merging(metadata ?? [:], uniquingKeysWith: { _, new in new })
+        var metadata = self.metadata.merging(metadata ?? [:], uniquingKeysWith: { $0.merging($1) })
         var labels = metadata.lokiLabels
         metadata.lokiLabels = [:]
 

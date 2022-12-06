@@ -22,4 +22,17 @@ public extension Logger.Metadata {
     }
 }
 
+extension Logger.MetadataValue {
+    
+    func merging(_ other: Logger.MetadataValue) -> Logger.MetadataValue {
+        switch (self, other) {
+        case let (.array(lhs), .array(rhs)):
+            return .array(lhs + rhs)
+        case let (.dictionary(lhs), .dictionary(rhs)):
+            return .dictionary(lhs.merging(rhs) { $0.merging($1) })
+        default: return other
+        }
+    }
+}
+
 private let lokiLabelKey = "loki_labels"
