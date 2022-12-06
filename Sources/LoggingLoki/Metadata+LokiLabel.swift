@@ -24,6 +24,19 @@ public extension Logger.Metadata {
 
 extension Logger.MetadataValue {
     
+    var isEmpty: Bool {
+        switch self {
+        case .string(let string):
+            return string.isEmpty
+        case .stringConvertible(let string):
+            return string.description.isEmpty
+        case .dictionary(let metadata):
+            return metadata.isEmpty || !metadata.contains(where: { !$0.value.isEmpty })
+        case .array(let array):
+            return array.isEmpty || !array.contains(where: { !$0.isEmpty })
+        }
+    }
+    
     func merging(_ other: Logger.MetadataValue) -> Logger.MetadataValue {
         switch (self, other) {
         case let (.array(lhs), .array(rhs)):
