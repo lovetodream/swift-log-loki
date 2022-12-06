@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "swift-log-loki",
+    platforms: [.macOS(.v11)],
     products: [
         .library(
             name: "LoggingLoki",
