@@ -107,16 +107,20 @@ public struct LokiLogHandler: LogHandler {
     ///     - function: The function the log line was emitted from.
     ///     - line: The line the log message was emitted from.
     public func log(level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?, source: String, file: String, function: String, line: UInt) {
-        let metadata = self.metadata.merging(metadata ?? [:], uniquingKeysWith: { _, new in new })
+        var metadata = self.metadata.merging(metadata ?? [:], uniquingKeysWith: { _, new in new })
+        var labels = metadata.lokiLabels
+        metadata.lokiLabels = [:]
 
-        let labels: [String: String] = [
-            "level": level.rawValue,
-            "service": label,
-            "source": source,
-            "file": file,
-            "function": function,
-            "line": String(line)
-        ].merging(metadata.mapValues(\.description)) { _, metadata in
+        labels.merge(
+            [
+                "level": level.rawValue,
+                "service": label,
+                "source": source,
+                "file": file,
+                "function": function,
+                "line": String(line)
+            ]
+        ) { metadata, _ in
             metadata
         }
         let timestamp = Date()
@@ -143,17 +147,11 @@ public struct LokiLogHandler: LogHandler {
         }
     }
 
-    private var prettyMetadata: String?
-
     /// Get or set the entire metadata storage as a dictionary.
     ///
     /// - note: `LogHandler`s must treat logging metadata as a value type. This means that the change in metadata must
     ///         only affect this very `LogHandler`.
-    public var metadata = Logger.Metadata() {
-        didSet {
-            prettyMetadata = prettify(metadata)
-        }
-    }
+    public var metadata = Logger.Metadata()
 
     /// Get or set the configured log level.
     ///
@@ -163,8 +161,8 @@ public struct LokiLogHandler: LogHandler {
     ///        `LogHandler`.
     public var logLevel: Logger.Level = .info
 
-    private func prettify(_ metadata: Logger.Metadata) -> String? {
-        !metadata.isEmpty ? metadata.map { "\($0)=\($1)" }.joined(separator: " ") : nil
+    private func prettify(_ metadata: Logger.Metadata) -> String {
+        metadata.map { "\($0)=\($1)" }.joined(separator: " ")
     }
 }
 

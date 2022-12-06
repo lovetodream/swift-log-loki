@@ -2,7 +2,7 @@ import class Foundation.NumberFormatter
 import class Foundation.NSNumber
 
 struct LokiStream: Encodable {
-    var stream: Dictionary<String, String>
+    var stream: LokiLabels
     var values: Array<Array<String>>
 
     init(_ logs: [LokiLog], with labels: LokiLabels) {
