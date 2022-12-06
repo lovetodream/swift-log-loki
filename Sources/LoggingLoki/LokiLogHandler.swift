@@ -10,13 +10,15 @@ public struct LokiLogHandler: LogHandler {
     internal let session: LokiSession
 
     private var lokiURL: URL
+    private var sendDataAsJSON: Bool
 
     /// The service label for the log handler instance.
     ///
     /// This value will be sent to Grafana Loki as the `service` label.
     public var label: String
 
-    internal init(label: String, lokiURL: URL, session: LokiSession) {
+    /// This initializer is only used internally and for running Unit Tests.
+    internal init(label: String, lokiURL: URL, sendAsJSON: Bool = false, session: LokiSession) {
         self.label = label
         #if os(Linux)
         self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
@@ -27,6 +29,7 @@ public struct LokiLogHandler: LogHandler {
             self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
         }
         #endif
+        self.sendDataAsJSON = sendAsJSON
         self.session = session
     }
 
@@ -47,7 +50,12 @@ public struct LokiLogHandler: LogHandler {
     /// - Parameters:
     ///   - label: client supplied string describing the logger. Should be unique but not enforced
     ///   - lokiURL: client supplied Grafana Loki base URL
-    public init(label: String, lokiURL: URL) {
+    ///   - sendAsJSON: Indicates if the logs should be sent to Loki as JSON.
+    ///                 This should not be required in most cases. By default this is false.
+    ///                 Logs will instead be sent as snappy compressed protobuf,
+    ///                 which is much smaller and should therefor use less bandwidth.
+    ///                 This is also the recommended way by Loki.
+    public init(label: String, lokiURL: URL, sendAsJSON: Bool = false) {
         self.label = label
         #if os(Linux)
         self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
@@ -58,6 +66,7 @@ public struct LokiLogHandler: LogHandler {
             self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
         }
         #endif
+        self.sendDataAsJSON = sendAsJSON
         self.session = URLSession(configuration: .ephemeral)
     }
 
@@ -81,7 +90,7 @@ public struct LokiLogHandler: LogHandler {
         let timestamp = Date()
         let message = "[\(level.rawValue.uppercased())]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
 
-        session.send((timestamp, message), with: labels, url: lokiURL) { result in
+        session.send((timestamp, message), with: labels, url: lokiURL, sendAsJSON: sendDataAsJSON) { result in
             if case .failure(let failure) = result {
                 debugPrint(failure)
             }
