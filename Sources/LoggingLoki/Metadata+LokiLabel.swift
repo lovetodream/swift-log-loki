@@ -17,7 +17,7 @@ public extension Logger.Metadata {
             }
         }
         set {
-            self[lokiLabelKey] = .dictionary(.lokiLabels(newValue))
+            self[lokiLabelKey] = newValue.isEmpty ? nil : .dictionary(.lokiLabels(newValue))
         }
     }
 }
