@@ -162,7 +162,7 @@ public struct LokiLogHandler: LogHandler {
     public var logLevel: Logger.Level = .info
 
     private func prettify(_ metadata: Logger.Metadata) -> String {
-        metadata.filter { !$0.value.isEmpty }.map { "\($0)=\($1)" }.joined(separator: " ")
+        metadata.map { "\($0)=\($1)" }.joined(separator: " ")
     }
 }
 
