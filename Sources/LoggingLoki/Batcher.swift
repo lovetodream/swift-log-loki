@@ -50,24 +50,32 @@ class Batcher {
         guard let batch else { return }
 
         if let maxBatchTimeInterval, batch.createdAt.addingTimeInterval(maxBatchTimeInterval) < Date() {
-            // ignore other options and send batch now
+            sendBatch(batch)
+            self.batch = nil
             return
         }
 
         switch batchSize {
         case .bytes(let amount):
             if batch.byteSize >= amount {
-                // send batch
+                sendBatch(batch)
+                self.batch = nil
+                return
             }
         case .entries(let amount):
             if batch.totalLogEntries >= amount {
-                // send batch
+                sendBatch(batch)
+                self.batch = nil
+                return
             }
         }
-//        session.send(log, with: labels, url: lokiURL, sendAsJSON: sendDataAsJSON) { result in
-//            if case .failure(let failure) = result {
-//                debugPrint(failure)
-//            }
-//        }
+    }
+
+    private func sendBatch(_ batch: Batch) {
+        session.send(batch, url: lokiURL, sendAsJSON: sendDataAsJSON) { result in
+            if case .failure(let failure) = result {
+                debugPrint(failure)
+            }
+        }
     }
 }

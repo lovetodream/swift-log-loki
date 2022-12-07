@@ -6,13 +6,12 @@ class TestSession: LokiSession {
     var logs: [LokiLog]?
     var labels: LokiLabels?
 
-    func send(_ logs: [LokiLog],
-              with labels: LokiLabels,
+    func send(_ batch: Batch,
               url: URL,
               sendAsJSON: Bool = false,
               completion: @escaping (Result<StatusCode, Error>) -> Void) {
-        self.logs = logs
-        self.labels = labels
+        self.logs = batch.entries.first?.logEntries
+        self.labels = batch.entries.first?.labels
     }
 }
 
@@ -25,7 +24,7 @@ final class LoggingLokiTests: XCTestCase {
         let expectedLine: UInt = 42
         let expectedService = "test.swift-log"
 
-        let handler = LokiLogHandler(label: expectedService, lokiURL: URL(string: "http://localhost:3100")!, session: TestSession())
+        let handler = LokiLogHandler(label: expectedService, lokiURL: URL(string: "http://localhost:3100")!, batchSize: .entries(amount: 1), session: TestSession())
         handler.log(level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"], source: expectedSource, file: expectedFile, function: expectedFunction, line: expectedLine)
 
         guard let session = handler.session as? TestSession else {

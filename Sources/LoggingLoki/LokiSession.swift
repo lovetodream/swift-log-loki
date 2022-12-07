@@ -6,32 +6,14 @@ import Logging
 import Snappy
 
 protocol LokiSession {
-    func send(_ logs: [LokiLog],
-              with labels: LokiLabels,
+    func send(_ batch: Batch,
               url: URL,
               sendAsJSON: Bool,
               completion: @escaping (Result<StatusCode, Error>) -> Void)
-
-    func send(_ log: LokiLog,
-              with labels: LokiLabels,
-              url: URL,
-              sendAsJSON: Bool,
-              completion: @escaping (Result<StatusCode, Error>) -> Void)
-}
-
-extension LokiSession {
-    func send(_ log: LokiLog,
-              with labels: LokiLabels,
-              url: URL,
-              sendAsJSON: Bool = false,
-              completion: @escaping (Result<StatusCode, Error>) -> Void) {
-        send([log], with: labels, url: url, sendAsJSON: sendAsJSON, completion: completion)
-    }
 }
 
 extension URLSession: LokiSession {
-    func send(_ logs: [LokiLog],
-              with labels: LokiLabels,
+    func send(_ batch: Batch,
               url: URL,
               sendAsJSON: Bool = false,
               completion: @escaping (Result<StatusCode, Error>) -> Void) {
@@ -40,14 +22,14 @@ extension URLSession: LokiSession {
             let contentType: String
             
             if sendAsJSON {
-                data = try JSONEncoder().encode(LokiRequest(streams: [.init(logs, with: labels)]))
+                data = try JSONEncoder().encode(LokiRequest.fromBatch(batch))
                 contentType = "application/json"
             } else {
                 let proto = Logproto_PushRequest.with { request in
-                    request.streams = [
-                        .with { stream in
-                            stream.labels = "{" + labels.map { "\($0)=\"\($1)\"" }.joined(separator: ",") + "}"
-                            stream.entries = logs.map { timestamp, message in
+                    request.streams = batch.entries.map { batchEntry in
+                        Logproto_StreamAdapter.with { stream in
+                            stream.labels = "{" + batchEntry.labels.map { "\($0)=\"\($1)\"" }.joined(separator: ",") + "}"
+                            stream.entries = batchEntry.logEntries.map { timestamp, message in
                                 Logproto_EntryAdapter.with { entry in
                                     entry.timestamp = .with {
                                         $0.seconds = Int64(timestamp.timeIntervalSince1970.rounded(.down))
@@ -57,7 +39,7 @@ extension URLSession: LokiSession {
                                 }
                             }
                         }
-                    ]
+                    }
                 }
                 data = try proto.serializedData().compressedUsingSnappy()
                 contentType = "application/x-protobuf"
