@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "swift-log-loki",
+    platforms: [.macOS(.v11)],
     products: [
         .library(
             name: "LoggingLoki",
@@ -13,6 +14,8 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.6.0"),
+        .package(url: "https://github.com/lovetodream/swift-snappy", from: "1.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -20,7 +23,10 @@ let package = Package(
         .target(
             name: "LoggingLoki",
             dependencies: [
-                .product(name: "Logging", package: "swift-log")]),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
+                .product(name: "Snappy", package: "swift-snappy"),
+            ]),
         .testTarget(
             name: "LoggingLokiTests",
             dependencies: ["LoggingLoki"]),

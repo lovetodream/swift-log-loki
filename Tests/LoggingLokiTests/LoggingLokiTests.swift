@@ -6,7 +6,11 @@ class TestSession: LokiSession {
     var logs: [LokiLog]?
     var labels: LokiLabels?
 
-    func send(_ logs: [LokiLog], with labels: LokiLabels, url: URL, completion: @escaping (Result<StatusCode, Error>) -> ()) {
+    func send(_ logs: [LokiLog],
+              with labels: LokiLabels,
+              url: URL,
+              sendAsJSON: Bool = false,
+              completion: @escaping (Result<StatusCode, Error>) -> Void) {
         self.logs = logs
         self.labels = labels
     }
