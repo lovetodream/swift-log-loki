@@ -46,7 +46,7 @@ extension URLSession: LokiSession {
                 let proto = Logproto_PushRequest.with { request in
                     request.streams = [
                         .with { stream in
-                            stream.labels = "{" + labels.map { "\($0)=\($1)" }.joined(separator: ",") + "}"
+                            stream.labels = "{" + labels.map { "\($0)=\"\($1)\"" }.joined(separator: ",") + "}"
                             stream.entries = logs.map { timestamp, message in
                                 Logproto_EntryAdapter.with { entry in
                                     entry.timestamp = .with {
