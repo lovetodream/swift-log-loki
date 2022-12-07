@@ -20,15 +20,11 @@ public struct LokiLogHandler: LogHandler {
     /// This initializer is only used internally and for running Unit Tests.
     internal init(label: String, lokiURL: URL, sendAsJSON: Bool = false, session: LokiSession) {
         self.label = label
-        #if os(Linux)
-        self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
-        #else
         if #available(macOS 13.0, *) {
             self.lokiURL = lokiURL.appending(path: "/loki/api/v1/push")
         } else {
             self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
         }
-        #endif
         self.sendDataAsJSON = sendAsJSON
         self.session = session
     }
@@ -56,18 +52,7 @@ public struct LokiLogHandler: LogHandler {
     ///                 which is much smaller and should therefor use less bandwidth.
     ///                 This is also the recommended way by Loki.
     public init(label: String, lokiURL: URL, sendAsJSON: Bool = false) {
-        self.label = label
-        #if os(Linux)
-        self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
-        #else
-        if #available(macOS 13.0, *) {
-            self.lokiURL = lokiURL.appending(path: "/loki/api/v1/push")
-        } else {
-            self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
-        }
-        #endif
-        self.sendDataAsJSON = sendAsJSON
-        self.session = URLSession(configuration: .ephemeral)
+        self.init(label: label, lokiURL: lokiURL, sendAsJSON: sendAsJSON, session: URLSession(configuration: .ephemeral))
     }
 
     /// This method is called when a `LogHandler` must emit a log message. There is no need for the `LogHandler` to
