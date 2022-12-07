@@ -11,9 +11,11 @@ public struct LokiLogHandler: LogHandler {
 
     private let lokiURL: URL
     private let sendDataAsJSON: Bool
+
     private let batchSize: BatchSize
     private let maxBatchTimeInterval: TimeInterval?
-    private let currentBatch: Batch? = nil
+
+    private let batcher: Batcher
 
     /// The service label for the log handler instance.
     ///
@@ -41,6 +43,11 @@ public struct LokiLogHandler: LogHandler {
         self.batchSize = batchSize
         self.maxBatchTimeInterval = maxBatchTimeInterval
         self.session = session
+        self.batcher = Batcher(session: self.session,
+                               lokiURL: self.lokiURL,
+                               sendDataAsJSON: self.sendDataAsJSON,
+                               batchSize: self.batchSize,
+                               maxBatchTimeInterval: self.maxBatchTimeInterval)
     }
 
     /// Initializes a ``LokiLogHandler`` with the provided parameters.
@@ -97,16 +104,13 @@ public struct LokiLogHandler: LogHandler {
     public func log(level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?, source: String, file: String, function: String, line: UInt) {
         let prettyMetadata = metadata?.isEmpty ?? true ? prettyMetadata : prettify(self.metadata.merging(metadata!, uniquingKeysWith: { _, new in new }))
 
-
-        let labels: [String: String] = ["service": label, "source": source, "file": file, "function": function, "line": String(line)]
+        let labels: LokiLabels = ["service": label, "source": source, "file": file, "function": function, "line": String(line)]
         let timestamp = Date()
         let message = "[\(level.rawValue.uppercased())]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
+        let log = (timestamp, message)
 
-        session.send((timestamp, message), with: labels, url: lokiURL, sendAsJSON: sendDataAsJSON) { result in
-            if case .failure(let failure) = result {
-                debugPrint(failure)
-            }
-        }
+        batcher.addEntryToBatch(log, with: labels)
+        batcher.sendBatchIfNeeded()
     }
 
     /// Add, remove, or change the logging metadata.
@@ -148,5 +152,4 @@ public struct LokiLogHandler: LogHandler {
     private func prettify(_ metadata: Logger.Metadata) -> String? {
         !metadata.isEmpty ? metadata.map { "\($0)=\($1)" }.joined(separator: " ") : nil
     }
-
 }
