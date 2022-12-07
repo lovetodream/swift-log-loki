@@ -9,6 +9,7 @@ This library can be used as an implementation of Apple's [swift-log](https://git
 
 - Supports Darwin (macOS), Linux platforms, iOS, watchOS and tvOS
 - Different logging levels such as `trace`, `debug`, `info`, `notice`, `warning`, `error` and `critical`
+- Option to send logs as snappy-compressed Protobuf (default) or JSON
 
 ## Add dependency
 
