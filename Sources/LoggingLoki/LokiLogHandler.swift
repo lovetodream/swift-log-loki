@@ -20,11 +20,15 @@ public struct LokiLogHandler: LogHandler {
     /// This initializer is only used internally and for running Unit Tests.
     internal init(label: String, lokiURL: URL, sendAsJSON: Bool = false, session: LokiSession) {
         self.label = label
+        #if os(Linux) // this needs to be explicitly checked, otherwise the build will fail on linux
+        self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
+        #else
         if #available(macOS 13.0, *) {
             self.lokiURL = lokiURL.appending(path: "/loki/api/v1/push")
         } else {
             self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
         }
+        #endif
         self.sendDataAsJSON = sendAsJSON
         self.session = session
     }
