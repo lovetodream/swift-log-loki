@@ -6,7 +6,7 @@ class Batcher {
     private let lokiURL: URL
     private let sendDataAsJSON: Bool
 
-    private let batchSize: BatchSize
+    private let batchSize: Int
     private let maxBatchTimeInterval: TimeInterval?
 
     private var currentTimer: Timer? = nil
@@ -16,15 +16,13 @@ class Batcher {
     internal init(session: LokiSession,
                   lokiURL: URL,
                   sendDataAsJSON: Bool,
-                  batchSize: BatchSize,
+                  batchSize: Int,
                   maxBatchTimeInterval: TimeInterval?) {
         self.session = session
         self.lokiURL = lokiURL
         self.sendDataAsJSON = sendDataAsJSON
         self.batchSize = batchSize
         self.maxBatchTimeInterval = maxBatchTimeInterval
-
-        startTimerIfNeeded()
     }
 
     func addEntryToBatch(_ log: LokiLog, with labels: LokiLabels) {
@@ -38,14 +36,6 @@ class Batcher {
         }
     }
 
-    func startTimerIfNeeded() {
-        guard let maxBatchTimeInterval, currentTimer == nil else { return }
-        currentTimer = Timer.scheduledTimer(withTimeInterval: maxBatchTimeInterval, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            self.sendBatchIfNeeded()
-        }
-    }
-
     func sendBatchIfNeeded() {
         guard let batch else { return }
 
@@ -55,19 +45,10 @@ class Batcher {
             return
         }
 
-        switch batchSize {
-        case .bytes(let amount):
-            if batch.byteSize >= amount {
-                sendBatch(batch)
-                self.batch = nil
-                return
-            }
-        case .entries(let amount):
-            if batch.totalLogEntries >= amount {
-                sendBatch(batch)
-                self.batch = nil
-                return
-            }
+        if batch.totalLogEntries >= batchSize {
+            sendBatch(batch)
+            self.batch = nil
+            return
         }
     }
 

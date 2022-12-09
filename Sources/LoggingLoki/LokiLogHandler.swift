@@ -12,7 +12,7 @@ public struct LokiLogHandler: LogHandler {
     private let lokiURL: URL
     private let sendDataAsJSON: Bool
 
-    private let batchSize: BatchSize
+    private let batchSize: Int
     private let maxBatchTimeInterval: TimeInterval?
 
     private let batcher: Batcher
@@ -26,7 +26,7 @@ public struct LokiLogHandler: LogHandler {
     internal init(label: String,
                   lokiURL: URL,
                   sendAsJSON: Bool = false,
-                  batchSize: BatchSize = .bytes(amount: 1_000_000),
+                  batchSize: Int = 10,
                   maxBatchTimeInterval: TimeInterval? = 5 * 60,
                   session: LokiSession) {
         self.label = label
@@ -73,14 +73,14 @@ public struct LokiLogHandler: LogHandler {
     ///                 which is much smaller and should therefor use less bandwidth.
     ///                 This is also the recommended way by Loki.
     ///   - batchSize: The size of a single batch of data. Once this limit is exceeded the batch of logs will be sent to Loki.
-    ///                This is 1,000,000 bytes by default.
+    ///                This is 10 log entries by default.
     ///   - maxBatchTimeInterval: The maximum amount of time in seconds to elapse until a batch is sent to Loki.
     ///                           This limit is set to 5 minutes by default. If a batch is not "full" after the end of the interval, it will be sent to Loki.
     ///                           The option should prevent leaving logs in memory for too long without sending them.
     public init(label: String,
                 lokiURL: URL,
                 sendAsJSON: Bool = false,
-                batchSize: BatchSize = .bytes(amount: 1_000_000),
+                batchSize: Int = 10,
                 maxBatchTimeInterval: TimeInterval? = 5 * 60) {
         self.init(label: label,
                   lokiURL: lokiURL,

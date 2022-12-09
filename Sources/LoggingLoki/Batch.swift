@@ -6,11 +6,7 @@ struct Batch {
     let createdAt = Date()
 
     var totalLogEntries: Int {
-        entries.map { $0.logEntries }.count
-    }
-
-    var byteSize: Int {
-        MemoryLayout.size(ofValue: self)
+        entries.flatMap { $0.logEntries }.count
     }
 
     mutating func addEntry(_ log: LokiLog, with labels: LokiLabels) {
