@@ -9,8 +9,13 @@ public struct LokiLogHandler: LogHandler {
 
     internal let session: LokiSession
 
-    private var lokiURL: URL
-    private var sendDataAsJSON: Bool
+    private let lokiURL: URL
+    private let sendDataAsJSON: Bool
+
+    private let batchSize: Int
+    private let maxBatchTimeInterval: TimeInterval?
+
+    private let batcher: Batcher
 
     /// The service label for the log handler instance.
     ///
@@ -18,7 +23,12 @@ public struct LokiLogHandler: LogHandler {
     public var label: String
 
     /// This initializer is only used internally and for running Unit Tests.
-    internal init(label: String, lokiURL: URL, sendAsJSON: Bool = false, session: LokiSession) {
+    internal init(label: String,
+                  lokiURL: URL,
+                  sendAsJSON: Bool = false,
+                  batchSize: Int = 10,
+                  maxBatchTimeInterval: TimeInterval? = 5 * 60,
+                  session: LokiSession) {
         self.label = label
         #if os(Linux) // this needs to be explicitly checked, otherwise the build will fail on linux
         self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
@@ -30,7 +40,14 @@ public struct LokiLogHandler: LogHandler {
         }
         #endif
         self.sendDataAsJSON = sendAsJSON
+        self.batchSize = batchSize
+        self.maxBatchTimeInterval = maxBatchTimeInterval
         self.session = session
+        self.batcher = Batcher(session: self.session,
+                               lokiURL: self.lokiURL,
+                               sendDataAsJSON: self.sendDataAsJSON,
+                               batchSize: self.batchSize,
+                               maxBatchTimeInterval: self.maxBatchTimeInterval)
     }
 
     /// Initializes a ``LokiLogHandler`` with the provided parameters.
@@ -55,8 +72,21 @@ public struct LokiLogHandler: LogHandler {
     ///                 Logs will instead be sent as snappy compressed protobuf,
     ///                 which is much smaller and should therefor use less bandwidth.
     ///                 This is also the recommended way by Loki.
-    public init(label: String, lokiURL: URL, sendAsJSON: Bool = false) {
-        self.init(label: label, lokiURL: lokiURL, sendAsJSON: sendAsJSON, session: URLSession(configuration: .ephemeral))
+    ///   - batchSize: The size of a single batch of data. Once this limit is exceeded the batch of logs will be sent to Loki.
+    ///                This is 10 log entries by default.
+    ///   - maxBatchTimeInterval: The maximum amount of time in seconds to elapse until a batch is sent to Loki.
+    ///                           This limit is set to 5 minutes by default. If a batch is not "full" after the end of the interval, it will be sent to Loki.
+    ///                           The option should prevent leaving logs in memory for too long without sending them.
+    public init(label: String,
+                lokiURL: URL,
+                sendAsJSON: Bool = false,
+                batchSize: Int = 10,
+                maxBatchTimeInterval: TimeInterval? = 5 * 60) {
+        self.init(label: label,
+                  lokiURL: lokiURL,
+                  sendAsJSON: sendAsJSON,
+                  batchSize: batchSize,
+                  session: URLSession(configuration: .ephemeral))
     }
 
     /// This method is called when a `LogHandler` must emit a log message. There is no need for the `LogHandler` to
@@ -74,16 +104,13 @@ public struct LokiLogHandler: LogHandler {
     public func log(level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?, source: String, file: String, function: String, line: UInt) {
         let prettyMetadata = metadata?.isEmpty ?? true ? prettyMetadata : prettify(self.metadata.merging(metadata!, uniquingKeysWith: { _, new in new }))
 
-
-        let labels: [String: String] = ["service": label, "source": source, "file": file, "function": function, "line": String(line)]
+        let labels: LokiLabels = ["service": label, "source": source, "file": file, "function": function, "line": String(line)]
         let timestamp = Date()
         let message = "[\(level.rawValue.uppercased())]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
+        let log = (timestamp, message)
 
-        session.send((timestamp, message), with: labels, url: lokiURL, sendAsJSON: sendDataAsJSON) { result in
-            if case .failure(let failure) = result {
-                debugPrint(failure)
-            }
-        }
+        batcher.addEntryToBatch(log, with: labels)
+        batcher.sendBatchIfNeeded()
     }
 
     /// Add, remove, or change the logging metadata.
@@ -125,5 +152,4 @@ public struct LokiLogHandler: LogHandler {
     private func prettify(_ metadata: Logger.Metadata) -> String? {
         !metadata.isEmpty ? metadata.map { "\($0)=\($1)" }.joined(separator: " ") : nil
     }
-
 }
