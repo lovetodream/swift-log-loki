@@ -112,8 +112,11 @@ public struct LokiLogHandler: LogHandler {
     ///     - line: The line the log message was emitted from.
     public func log(level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?, source: String, file: String, function: String, line: UInt) {
         var labels = self.metadata.lokiLabels.merging(metadata?.lokiLabels ?? [:]) { _, sec in sec }
-        var metadata = self.metadata.merging(metadata ?? [:]) { _, sec in sec }
+        var metadata = metadata ?? [:]
         metadata.lokiLabels = [:]
+        let metadataString = metadata.isEmpty
+            ? prettyMetadata
+            : prettify(self.metadata.merging(metadata) { _, sec in sec })
 
         labels.merge(
             [
@@ -128,7 +131,7 @@ public struct LokiLogHandler: LogHandler {
             metadata
         }
         let timestamp = Date()
-        let message = "[\(level.rawValue.uppercased())]\(metadata.isEmpty ? "" : " \(prettify(metadata))") \(message)"
+        let message = "[\(level.rawValue.uppercased())]\(metadataString.isEmpty ? "" : " \(metadataString)") \(message)"
         let log = (timestamp, message)
 
         batcher.addEntryToBatch(log, with: labels)
@@ -151,12 +154,18 @@ public struct LokiLogHandler: LogHandler {
         }
     }
 
+    private var prettyMetadata = ""
+    
     /// Get or set the entire metadata storage as a dictionary.
     ///
     /// - note: `LogHandler`s must treat logging metadata as a value type. This means that the change in metadata must
     ///         only affect this very `LogHandler`.
-    public var metadata = Logger.Metadata()
-
+    public var metadata = Logger.Metadata() {
+        didSet {
+            prettyMetadata = prettify(metadata)
+        }
+    }
+    
     /// Get or set the configured log level.
     ///
     /// - note: `LogHandler`s must treat the log level as a value type. This means that the change in metadata must
@@ -166,7 +175,9 @@ public struct LokiLogHandler: LogHandler {
     public var logLevel: Logger.Level = .info
 
     private func prettify(_ metadata: Logger.Metadata) -> String {
-        "[\(metadata.map { "\($0): \($1)" }.joined(separator: ", "))]"
+        var metadata = metadata
+        metadata.lokiLabels = [:]
+        return metadata.isEmpty ? "" : "[\(metadata.map { "\($0): \($1)" }.sorted().joined(separator: ", "))]"
     }
 }
 
