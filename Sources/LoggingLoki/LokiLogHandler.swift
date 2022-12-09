@@ -25,6 +25,7 @@ public struct LokiLogHandler: LogHandler {
     /// This initializer is only used internally and for running Unit Tests.
     internal init(label: String,
                   lokiURL: URL,
+                  auth: LokiAuth = .none,
                   headers: [String: String] = [:],
                   sendAsJSON: Bool = false,
                   batchSize: Int = 10,
@@ -45,6 +46,7 @@ public struct LokiLogHandler: LogHandler {
         self.maxBatchTimeInterval = maxBatchTimeInterval
         self.session = session
         self.batcher = Batcher(session: self.session,
+                               auth: auth,
                                headers: headers,
                                lokiURL: self.lokiURL,
                                sendDataAsJSON: self.sendDataAsJSON,
@@ -82,12 +84,14 @@ public struct LokiLogHandler: LogHandler {
     ///                           The option should prevent leaving logs in memory for too long without sending them.
     public init(label: String,
                 lokiURL: URL,
+                auth: LokiAuth = .none,
                 headers: [String: String] = [:],
                 sendAsJSON: Bool = false,
                 batchSize: Int = 10,
                 maxBatchTimeInterval: TimeInterval? = 5 * 60) {
         self.init(label: label,
                   lokiURL: lokiURL,
+                  auth: auth,
                   headers: headers,
                   sendAsJSON: sendAsJSON,
                   batchSize: batchSize,
@@ -124,7 +128,7 @@ public struct LokiLogHandler: LogHandler {
             metadata
         }
         let timestamp = Date()
-        let message = "[\(level.rawValue.uppercased())]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
+        let message = "[\(level.rawValue.uppercased())]\(metadata.isEmpty ? "" : " \(prettify(metadata))") \(message)"
         let log = (timestamp, message)
 
         batcher.addEntryToBatch(log, with: labels)
@@ -189,38 +193,10 @@ public extension LokiLogHandler {
     ///   - user: client supplied Grafana Loki user name
     ///   - password: client supplied Grafana Loki user password
     init(label: String, lokiURL: URL, user: String, password: String) {
-        self.init(label: label, lokiURL: lokiURL, headers: ["Authorization": "Basic \(password)"])
-    }
-}
-
-public extension LokiLogHandler {
-    
-    
-    /// Initializes a ``LokiLogHandler`` with the provided parameters.
-    ///
-    /// The handler will send all logs it captures to the Grafana Loki instance the client has provided. If a request fails it will send a debugPrint to the the console.
-    /// The handler will not send the request again. It's basically fire and forget.
-    ///
-    /// ```swift
-    /// LoggingSystem.bootstrap {
-    ///     LokiLogHandler(
-    ///         label: $0,
-    ///         lokiURL: URL(string: "http://localhost:3100")!
-    ///     )
-    /// }
-    /// ```
-    ///
-    /// - Parameters:
-    ///   - label: client supplied string describing the logger. Should be unique but not enforced
-    ///   - lokiURL: client supplied Grafana Loki base URL
-    ///   - user: client supplied Grafana Loki user name
-    ///   - password: client supplied Grafana Loki user password
-    init(label: String, lokiURL: URL, user: String, password: String) {
-        let string = "\(user):\(password)".data(using: .utf8)?.base64EncodedString() ?? "\(user):\(password)"
         self.init(
             label: label,
             lokiURL: lokiURL,
-            headers: ["Authorization": "Basic \(string)"]
+            auth: .basic(user: user, password: password)
         )
     }
 }

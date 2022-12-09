@@ -6,17 +6,21 @@ import Logging
 import Snappy
 
 protocol LokiSession {
+    
     func send(_ batch: Batch,
               url: URL,
               headers: [String: String],
+              auth: LokiAuth,
               sendAsJSON: Bool,
               completion: @escaping (Result<StatusCode, Error>) -> Void)
 }
 
 extension URLSession: LokiSession {
+    
     func send(_ batch: Batch,
               url: URL,
               headers: [String: String],
+              auth: LokiAuth,
               sendAsJSON: Bool = false,
               completion: @escaping (Result<StatusCode, Error>) -> Void) {
         do {
@@ -54,6 +58,7 @@ extension URLSession: LokiSession {
             for header in headers {
                 request.setValue(header.value, forHTTPHeaderField: header.key)
             }
+            try auth.setAuth(for: &request)
 
             let task = dataTask(with: request) { data, response, error in
                 if let error = error {
