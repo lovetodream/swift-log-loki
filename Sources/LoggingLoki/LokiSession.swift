@@ -8,6 +8,7 @@ import Snappy
 protocol LokiSession {
     func send(_ batch: Batch,
               url: URL,
+              headers: [String: String],
               sendAsJSON: Bool,
               completion: @escaping (Result<StatusCode, Error>) -> Void)
 }
@@ -15,6 +16,7 @@ protocol LokiSession {
 extension URLSession: LokiSession {
     func send(_ batch: Batch,
               url: URL,
+              headers: [String: String],
               sendAsJSON: Bool = false,
               completion: @escaping (Result<StatusCode, Error>) -> Void) {
         do {
@@ -49,6 +51,9 @@ extension URLSession: LokiSession {
             request.httpMethod = "POST"
             request.httpBody = data
             request.setValue(contentType, forHTTPHeaderField: "Content-Type")
+            for header in headers {
+                request.setValue(header.value, forHTTPHeaderField: header.key)
+            }
 
             let task = dataTask(with: request) { data, response, error in
                 if let error = error {

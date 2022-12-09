@@ -2,6 +2,7 @@ import Foundation
 
 class Batcher {
     private let session: LokiSession
+    private let headers: [String: String]
 
     private let lokiURL: URL
     private let sendDataAsJSON: Bool
@@ -13,12 +14,14 @@ class Batcher {
 
     var batch: Batch? = nil
 
-    internal init(session: LokiSession,
-                  lokiURL: URL,
-                  sendDataAsJSON: Bool,
-                  batchSize: Int,
-                  maxBatchTimeInterval: TimeInterval?) {
+    init(session: LokiSession,
+         headers: [String: String],
+         lokiURL: URL,
+         sendDataAsJSON: Bool,
+         batchSize: Int,
+         maxBatchTimeInterval: TimeInterval?) {
         self.session = session
+        self.headers = headers
         self.lokiURL = lokiURL
         self.sendDataAsJSON = sendDataAsJSON
         self.batchSize = batchSize
@@ -53,7 +56,7 @@ class Batcher {
     }
 
     private func sendBatch(_ batch: Batch) {
-        session.send(batch, url: lokiURL, sendAsJSON: sendDataAsJSON) { result in
+        session.send(batch, url: lokiURL, headers: headers, sendAsJSON: sendDataAsJSON) { result in
             if case .failure(let failure) = result {
                 debugPrint(failure)
             }

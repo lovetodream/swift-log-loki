@@ -8,6 +8,7 @@ class TestSession: LokiSession {
 
     func send(_ batch: Batch,
               url: URL,
+              headers: [String: String],
               sendAsJSON: Bool = false,
               completion: @escaping (Result<StatusCode, Error>) -> Void) {
         self.logs = batch.entries.first?.logEntries

@@ -25,6 +25,7 @@ public struct LokiLogHandler: LogHandler {
     /// This initializer is only used internally and for running Unit Tests.
     internal init(label: String,
                   lokiURL: URL,
+                  headers: [String: String] = [:],
                   sendAsJSON: Bool = false,
                   batchSize: Int = 10,
                   maxBatchTimeInterval: TimeInterval? = 5 * 60,
@@ -44,6 +45,7 @@ public struct LokiLogHandler: LogHandler {
         self.maxBatchTimeInterval = maxBatchTimeInterval
         self.session = session
         self.batcher = Batcher(session: self.session,
+                               headers: headers,
                                lokiURL: self.lokiURL,
                                sendDataAsJSON: self.sendDataAsJSON,
                                batchSize: self.batchSize,
@@ -67,6 +69,7 @@ public struct LokiLogHandler: LogHandler {
     /// - Parameters:
     ///   - label: client supplied string describing the logger. Should be unique but not enforced
     ///   - lokiURL: client supplied Grafana Loki base URL
+    ///   - headers: These headers will be added to all requests sent to Grafana Loki.
     ///   - sendAsJSON: Indicates if the logs should be sent to Loki as JSON.
     ///                 This should not be required in most cases. By default this is false.
     ///                 Logs will instead be sent as snappy compressed protobuf,
@@ -79,11 +82,13 @@ public struct LokiLogHandler: LogHandler {
     ///                           The option should prevent leaving logs in memory for too long without sending them.
     public init(label: String,
                 lokiURL: URL,
+                headers: [String: String] = [:],
                 sendAsJSON: Bool = false,
                 batchSize: Int = 10,
                 maxBatchTimeInterval: TimeInterval? = 5 * 60) {
         self.init(label: label,
                   lokiURL: lokiURL,
+                  headers: headers,
                   sendAsJSON: sendAsJSON,
                   batchSize: batchSize,
                   session: URLSession(configuration: .ephemeral))
