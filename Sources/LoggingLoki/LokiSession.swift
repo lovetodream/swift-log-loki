@@ -56,7 +56,7 @@ extension URLSession: LokiSession {
                 } else if let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) {
                     completion(.success(httpResponse.statusCode))
                 } else {
-                    completion(.failure(LokiError.invalidResponse))
+                    completion(.failure(LokiError.invalidResponse(data)))
                 }
             }
             task.resume()
