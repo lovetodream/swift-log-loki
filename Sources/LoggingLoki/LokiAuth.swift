@@ -28,11 +28,11 @@ public extension LokiAuth {
         user: String,
         password: String
     ) -> LokiAuth {
-        .authHeader {
-            guard let data = "\(user):\(password)".data(using: .utf8) else {
+        let string = "\(user):\(password)".data(using: .utf8)?.base64EncodedString()
+        return .authHeader {
+            guard let string else {
                 throw LokiError.invalidAuthString
             }
-            let string = data.base64EncodedString()
             return "Basic \(string)"
         }
     }
