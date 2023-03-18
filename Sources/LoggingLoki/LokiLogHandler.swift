@@ -113,9 +113,10 @@ public struct LokiLogHandler: LogHandler {
         let timestamp = Date()
         let message = "[\(level.rawValue.uppercased())]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
         let log = (timestamp, message)
-
-        batcher.addEntryToBatch(log, with: labels)
-        batcher.sendBatchIfNeeded()
+        Task { [self, labels] in
+            await batcher.addEntryToBatch(log, with: labels)
+            await batcher.sendBatchIfNeeded()
+        }
     }
 
     /// Add, remove, or change the logging metadata.

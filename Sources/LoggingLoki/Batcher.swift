@@ -1,6 +1,7 @@
 import Foundation
 
-class Batcher {
+final actor Batcher {
+    
     private let session: LokiSession
     private let headers: [String: String]
 
