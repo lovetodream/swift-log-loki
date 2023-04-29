@@ -46,7 +46,7 @@ public struct LokiLogHandler: LogHandler {
         self.batchSize = batchSize
         self.maxBatchTimeInterval = maxBatchTimeInterval
         self.session = session
-				self.includeLabels = includeLabels
+        self.includeLabels = includeLabels
         self.batcher = Batcher(session: self.session,
                                headers: headers,
                                lokiURL: self.lokiURL,
@@ -127,9 +127,7 @@ public struct LokiLogHandler: LogHandler {
             ) { metadata, _ in
                 metadata
             }
-        let metadataString = metadata.isEmpty
-        ? prettyMetadata
-        : prettify(metadata)
+        let metadataString = metadata.isEmpty ? prettyMetadata : prettify(metadata)
         
         let timestamp = Date()
         let message = "[\(level.rawValue.uppercased())]\(metadataString.isEmpty ? "" : " \(metadataString)") \(message)"
