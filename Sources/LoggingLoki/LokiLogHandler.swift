@@ -14,6 +14,7 @@ public struct LokiLogHandler: LogHandler {
 
     private let batchSize: Int
     private let maxBatchTimeInterval: TimeInterval?
+	  private let includeLabels: LabelsSet
 
     private let batcher: Batcher
 
@@ -29,12 +30,13 @@ public struct LokiLogHandler: LogHandler {
                   sendAsJSON: Bool = false,
                   batchSize: Int = 10,
                   maxBatchTimeInterval: TimeInterval? = 5 * 60,
-                  session: LokiSession) {
+                  session: LokiSession,
+									includeLabels: LabelsSet = Self.defaultIndexedLabels) {
         self.label = label
         #if os(Linux) // this needs to be explicitly checked, otherwise the build will fail on linux
         self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
         #else
-        if #available(macOS 13.0, *) {
+			  if #available(macOS 13.0, iOS 16.0, *) {
             self.lokiURL = lokiURL.appending(path: "/loki/api/v1/push")
         } else {
             self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
@@ -44,6 +46,7 @@ public struct LokiLogHandler: LogHandler {
         self.batchSize = batchSize
         self.maxBatchTimeInterval = maxBatchTimeInterval
         self.session = session
+				self.includeLabels = includeLabels
         self.batcher = Batcher(session: self.session,
                                headers: headers,
                                lokiURL: self.lokiURL,
@@ -85,13 +88,15 @@ public struct LokiLogHandler: LogHandler {
                 headers: [String: String] = [:],
                 sendAsJSON: Bool = false,
                 batchSize: Int = 10,
-                maxBatchTimeInterval: TimeInterval? = 5 * 60) {
+                maxBatchTimeInterval: TimeInterval? = 5 * 60,
+								indexedMetadataKeys: LabelsSet = Self.defaultIndexedLabels) {
         self.init(label: label,
                   lokiURL: lokiURL,
                   headers: headers,
                   sendAsJSON: sendAsJSON,
                   batchSize: batchSize,
-                  session: URLSession(configuration: .ephemeral))
+									session: URLSession(configuration: .ephemeral),
+									includeLabels: indexedMetadataKeys)
     }
 
     /// This method is called when a `LogHandler` must emit a log message. There is no need for the `LogHandler` to
@@ -107,15 +112,32 @@ public struct LokiLogHandler: LogHandler {
     ///     - function: The function the log line was emitted from.
     ///     - line: The line the log message was emitted from.
     public func log(level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?, source: String, file: String, function: String, line: UInt) {
-        let prettyMetadata = metadata?.isEmpty ?? true ? prettyMetadata : prettify(self.metadata.merging(metadata!, uniquingKeysWith: { _, new in new }))
+			  let metadata = self.metadata.merging(metadata ?? [:]) { _, new in
+				    new
+			  }
+				.merging(
+				    [
+							  Labels.level.rawValue: .string(level.rawValue),
+								Labels.label.rawValue: .string(label),
+								Labels.source.rawValue: .string(source),
+								Labels.file.rawValue: .string(file),
+								Labels.function.rawValue: .string(function),
+								Labels.line.rawValue: .string(String(line))
+				    ]
+				) { metadata, _ in
+				    metadata
+			  }
+        let metadataString = metadata.isEmpty
+            ? prettyMetadata
+            : prettify(metadata)
 
-        let labels: LokiLabels = ["service": label, "source": source, "file": file, "function": function, "line": String(line)]
         let timestamp = Date()
-        let message = "[\(level.rawValue.uppercased())]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
+		  	let message = "[\(level.rawValue.uppercased())]\(metadataString.isEmpty ? "" : " \(metadataString)") \(message)"
         let log = (timestamp, message)
-
-        batcher.addEntryToBatch(log, with: labels)
-        batcher.sendBatchIfNeeded()
+			  let labels = metadata.filter { includeLabels.contains($0.key) }.mapValues(\.description)
+			
+			  batcher.addEntryToBatch(log, with: labels)
+			  batcher.sendBatchIfNeeded()
     }
 
     /// Add, remove, or change the logging metadata.
@@ -134,8 +156,8 @@ public struct LokiLogHandler: LogHandler {
         }
     }
 
-    private var prettyMetadata: String?
-
+    private var prettyMetadata = ""
+    
     /// Get or set the entire metadata storage as a dictionary.
     ///
     /// - note: `LogHandler`s must treat logging metadata as a value type. This means that the change in metadata must
@@ -154,7 +176,13 @@ public struct LokiLogHandler: LogHandler {
     ///        `LogHandler`.
     public var logLevel: Logger.Level = .info
 
-    private func prettify(_ metadata: Logger.Metadata) -> String? {
-        !metadata.isEmpty ? metadata.map { "\($0)=\($1)" }.joined(separator: " ") : nil
+    private func prettify(_ metadata: Logger.Metadata) -> String {
+				let metadata = metadata.filter { !includeLabels.contains($0.key) }
+        return metadata.isEmpty ? "" : "[\(metadata.map { "\($0): \($1)" }.sorted().joined(separator: ", "))]"
     }
+}
+
+public extension LokiLogHandler {
+	
+	  static var defaultIndexedLabels = LabelsSet(Labels.allCases.map(\.rawValue))
 }
