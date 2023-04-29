@@ -14,6 +14,7 @@ public struct LokiLogHandler: LogHandler {
 
     private let batchSize: Int
     private let maxBatchTimeInterval: TimeInterval?
+    private let colorizeLevel: Bool
 
     private let batcher: Batcher
 
@@ -27,6 +28,7 @@ public struct LokiLogHandler: LogHandler {
                   lokiURL: URL,
                   headers: [String: String] = [:],
                   sendAsJSON: Bool = false,
+                  colorizeLevel: Bool = true,
                   batchSize: Int = 10,
                   maxBatchTimeInterval: TimeInterval? = 5 * 60,
                   session: LokiSession) {
@@ -44,6 +46,7 @@ public struct LokiLogHandler: LogHandler {
         self.batchSize = batchSize
         self.maxBatchTimeInterval = maxBatchTimeInterval
         self.session = session
+        self.colorizeLevel = colorizeLevel
         self.batcher = Batcher(session: self.session,
                                headers: headers,
                                lokiURL: self.lokiURL,
@@ -84,12 +87,14 @@ public struct LokiLogHandler: LogHandler {
                 lokiURL: URL,
                 headers: [String: String] = [:],
                 sendAsJSON: Bool = false,
+                colorizeLevel: Bool = true,
                 batchSize: Int = 10,
                 maxBatchTimeInterval: TimeInterval? = 5 * 60) {
         self.init(label: label,
                   lokiURL: lokiURL,
                   headers: headers,
                   sendAsJSON: sendAsJSON,
+                  colorizeLevel: colorizeLevel,
                   batchSize: batchSize,
                   session: URLSession(configuration: .ephemeral))
     }
@@ -111,7 +116,11 @@ public struct LokiLogHandler: LogHandler {
 
         let labels: LokiLabels = ["service": label, "source": source, "file": file, "function": function, "line": String(line)]
         let timestamp = Date()
-        let message = "[\(level.rawValue.uppercased())]\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
+        var levelString = "[\(level.rawValue.uppercased())]"
+        if colorizeLevel {
+            levelString = levelString.consoleStyle(level.style)
+        }
+        let message = "\(levelString)\(prettyMetadata.map { " \($0)"} ?? "") \(message)"
         let log = (timestamp, message)
 
         batcher.addEntryToBatch(log, with: labels)
