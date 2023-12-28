@@ -34,7 +34,7 @@ public struct LokiLogHandler: LogHandler, Sendable {
         #if os(Linux) // this needs to be explicitly checked, otherwise the build will fail on linux
         self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
         #else
-        if #available(macOS 13.0, *) {
+        if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
             self.lokiURL = lokiURL.appending(path: "/loki/api/v1/push")
         } else {
             self.lokiURL = lokiURL.appendingPathComponent("/loki/api/v1/push")
