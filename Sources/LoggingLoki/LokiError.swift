@@ -1,7 +1,7 @@
 import struct Foundation.Data
 import protocol Foundation.LocalizedError
 
-enum LokiError: LocalizedError {
+enum LokiError: LocalizedError, Sendable {
     case invalidResponse(Data?)
 
     var errorDescription: String? {

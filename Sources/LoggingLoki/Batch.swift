@@ -1,6 +1,6 @@
 import Foundation
 
-struct Batch {
+struct Batch: Sendable {
     var entries: [BatchEntry]
 
     let createdAt = Date()

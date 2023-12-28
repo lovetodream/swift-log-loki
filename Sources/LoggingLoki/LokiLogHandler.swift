@@ -5,7 +5,7 @@ import FoundationNetworking
 import Logging
 
 /// ``LokiLogHandler`` is a logging backend for `Logging`.
-public struct LokiLogHandler: LogHandler {
+public struct LokiLogHandler: LogHandler, Sendable {
 
     internal let session: LokiSession
 

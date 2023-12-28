@@ -5,7 +5,7 @@ import FoundationNetworking
 import Logging
 import Snappy
 
-protocol LokiSession {
+protocol LokiSession: Sendable {
     func send(_ batch: Batch,
               url: URL,
               headers: [String: String],

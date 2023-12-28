@@ -1,4 +1,4 @@
-struct LokiRequest: Encodable {
+struct LokiRequest: Encodable, Sendable {
     var streams: [LokiStream]
 
     static func fromBatch(_ batch: Batch) -> LokiRequest {

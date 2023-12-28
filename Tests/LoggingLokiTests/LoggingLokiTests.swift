@@ -2,7 +2,7 @@ import XCTest
 @testable import LoggingLoki
 import struct Logging.Logger
 
-class TestSession: LokiSession {
+final class TestSession: LokiSession, @unchecked Sendable {
     var logs: [LokiLog]?
     var labels: LokiLabels?
 

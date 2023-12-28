@@ -1,6 +1,6 @@
 import Foundation
 
-class Batcher {
+final class Batcher: Sendable {
     private let session: LokiSession
     private let headers: [String: String]
 
@@ -10,9 +10,7 @@ class Batcher {
     private let batchSize: Int
     private let maxBatchTimeInterval: TimeInterval?
 
-    private var currentTimer: Timer? = nil
-
-    var batch: Batch? = nil
+    let batch: NIOLockedValueBox<Batch?> = NIOLockedValueBox(nil)
 
     init(session: LokiSession,
          headers: [String: String],
@@ -29,29 +27,31 @@ class Batcher {
     }
 
     func addEntryToBatch(_ log: LokiLog, with labels: LokiLabels) {
-        if var batch {
-            batch.addEntry(log, with: labels)
-            self.batch = batch
-        } else {
-            var batch = Batch(entries: [])
-            batch.addEntry(log, with: labels)
-            self.batch = batch
+        self.batch.withLockedValue { batch in
+            if batch != nil {
+                batch!.addEntry(log, with: labels)
+            } else {
+                batch = Batch(entries: [])
+                batch!.addEntry(log, with: labels)
+            }
         }
     }
 
     func sendBatchIfNeeded() {
-        guard let batch else { return }
+        self.batch.withLockedValue { safeBatch in
+            guard let batch = safeBatch else { return }
 
-        if let maxBatchTimeInterval, batch.createdAt.addingTimeInterval(maxBatchTimeInterval) < Date() {
-            sendBatch(batch)
-            self.batch = nil
-            return
-        }
+            if let maxBatchTimeInterval, batch.createdAt.addingTimeInterval(maxBatchTimeInterval) < Date() {
+                sendBatch(batch)
+                safeBatch = nil
+                return
+            }
 
-        if batch.totalLogEntries >= batchSize {
-            sendBatch(batch)
-            self.batch = nil
-            return
+            if batch.totalLogEntries >= batchSize {
+                sendBatch(batch)
+                safeBatch = nil
+                return
+            }
         }
     }
 

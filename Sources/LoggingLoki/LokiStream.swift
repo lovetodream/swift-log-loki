@@ -1,7 +1,7 @@
 import class Foundation.NumberFormatter
 import class Foundation.NSNumber
 
-struct LokiStream: Encodable {
+struct LokiStream: Encodable, Sendable {
     var stream: Dictionary<String, String>
     var values: Array<Array<String>>
 
