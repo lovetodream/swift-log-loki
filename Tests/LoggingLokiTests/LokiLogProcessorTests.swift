@@ -26,7 +26,7 @@ final class LokiLogProcessorTests: XCTestCase {
         let configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
             metadataFormat: .custom({ level, message, metadata in
-                "\(level.rawValue.uppercased()): \(message) \(metadata)"
+                "\(level.rawValue.uppercased()): \(message) [\(metadata.sorted(by: { $0.key < $1.key }).map({ "\($0.key): \($0.value)" }).joined(separator: ", "))]"
             })
         )
         let processor = LokiLogProcessor(configuration: configuration)
@@ -38,6 +38,6 @@ final class LokiLogProcessorTests: XCTestCase {
         )
         let formatted = processor.makeLog(raw)
         XCTAssertNil(formatted.metadata)
-        XCTAssertEqual(formatted.line, #"INFO: My log message ["basic_key": basic_value, "additional_key": value with whitespace]"#)
+        XCTAssertEqual(formatted.line, #"INFO: My log message [additional_key: value with whitespace, basic_key: basic_value]"#)
     }
 }
