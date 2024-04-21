@@ -1,6 +1,7 @@
 import class Foundation.JSONEncoder
 import NIOCore
 import NIOHTTP1
+import NIOFoundationCompat
 import Snappy
 
 protocol LokiTransformer: Sendable {
