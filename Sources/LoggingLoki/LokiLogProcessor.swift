@@ -193,25 +193,28 @@ public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service whe
     }
 
     func addEntryToBatch(_ log: LokiLog, with labels: [String: String]) {
-        let _log: LokiLog.Transport
+        let log = makeLog(log)
+        continuation.yield((log, labels))
+    }
+
+    func makeLog(_ log: LokiLog) -> LokiLog.Transport {
         switch configuration.metadataFormat.code {
         case .logfmt:
             var line = "[\(log.level.rawValue.uppercased())] message=\"\(log.message)\""
             if let metadata = prettify(log.metadata) {
                 line += " \(metadata)"
             }
-            _log = .init(timestamp: .init(), line: line)
+            return .init(timestamp: .init(), line: line)
         case .structured:
-            _log = .init(
+            return .init(
                 timestamp: .init(),
                 line: "[\(log.level.rawValue.uppercased())] \(log.message)",
                 metadata: log.metadata.mapValues(\.description)
             )
         case .custom(let customFormatter):
             let line = customFormatter(log.level, log.message, log.metadata)
-            _log = .init(timestamp: .init(), line: line)
+            return .init(timestamp: .init(), line: line)
         }
-        continuation.yield((_log, labels))
     }
 
     private func sendBatch(_ batch: Batch<Clock>) async throws {
