@@ -10,34 +10,13 @@ public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable wh
     /// This value will be sent to Grafana Loki as the `service` label.
     public var label: String
 
-    /// Initializes a ``LokiLogHandler`` with the provided parameters.
+    /// Creates a log handler, which sends logs to Grafana Loki.
     ///
-    /// The handler will send all logs it captures to the Grafana Loki instance the client has provided. If a request fails it will send a debugPrint to the the console.
-    /// The handler will not send the request again. It's basically fire and forget.
-    ///
-    /// ```swift
-    /// LoggingSystem.bootstrap {
-    ///     LokiLogHandler(
-    ///         label: $0,
-    ///         lokiURL: "http://localhost:3100"
-    ///     )
-    /// }
-    /// ```
+    /// @Snippet(path: "swift-log-loki/Snippets/BasicUsage", slice: "setup")
     ///
     /// - Parameters:
-    ///   - label: client supplied string describing the logger. Should be unique but not enforced
-    ///   - lokiURL: client supplied Grafana Loki base URL
-    ///   - headers: These headers will be added to all requests sent to Grafana Loki.
-    ///   - sendAsJSON: Indicates if the logs should be sent to Loki as JSON.
-    ///                 This should not be required in most cases. By default this is false.
-    ///                 Logs will instead be sent as snappy compressed protobuf,
-    ///                 which is much smaller and should therefor use less bandwidth.
-    ///                 This is also the recommended way by Loki.
-    ///   - batchSize: The size of a single batch of data. Once this limit is exceeded the batch of logs will be sent to Loki.
-    ///                This is 10 log entries by default.
-    ///   - maxBatchTimeInterval: The maximum amount of time in seconds to elapse until a batch is sent to Loki.
-    ///                           This limit is set to 5 minutes by default. If a batch is not "full" after the end of the interval, it will be sent to Loki.
-    ///                           The option should prevent leaving logs in memory for too long without sending them.
+    ///   - label: Client supplied string describing the logger. Should be unique but not enforced
+    ///   - processor: Backend service which manages and sends logs to Loki.
     public init(label: String, processor: LokiLogProcessor<Clock>) {
         self.label = label
         self.processor = processor
