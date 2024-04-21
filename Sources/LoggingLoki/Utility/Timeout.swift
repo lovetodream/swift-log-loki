@@ -15,11 +15,3 @@ func withTimeout<ClockType: Clock, ChildTaskResult>(
         return result
     }
 }
-
-func withTimeout<ChildTaskResult>(
-    _ timeout: Duration,
-    priority: TaskPriority? = nil,
-    operation: @escaping @Sendable () async throws -> ChildTaskResult
-) async rethrows -> ChildTaskResult where ChildTaskResult: Sendable {
-    try await withTimeout(timeout, priority: priority, clock: ContinuousClock(), operation: operation)
-}
