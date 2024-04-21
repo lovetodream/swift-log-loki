@@ -1,3 +1,4 @@
+import class Foundation.ProcessInfo
 import Logging
 
 /// ``LokiLogHandler`` is a logging backend for `Logging`.
@@ -5,20 +6,37 @@ public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable wh
 
     private let processor: LokiLogProcessor<Clock>
 
-    /// The service label for the log handler instance.
+    /// The logger label for the log handler instance.
+    ///
+    /// This value will be sent to Grafana Loki as the `logger` label.
+    public var label: String
+    /// The service/program name.
     ///
     /// This value will be sent to Grafana Loki as the `service` label.
-    public var label: String
+    public var service: String
+    /// Static labels sent to Loki, which should not depend on the context of a log message.
+    public var lokiLabels: [String: String]
 
     /// Creates a log handler, which sends logs to Grafana Loki.
     ///
     /// @Snippet(path: "swift-log-loki/Snippets/BasicUsage", slice: "setup")
     ///
     /// - Parameters:
-    ///   - label: Client supplied string describing the logger. Should be unique but not enforced
+    ///   - label: Client supplied string describing the logger. Should be unique but not enforced.
+    ///            It's also sent to Loki as the `logger` label.
+    ///   - service: Client supplied string indicating the service/program name.
+    ///              It will be sent to Loki as the `service` label.
+    ///   - lokiLabels: Static labels sent to Loki, which should not depend on the context of a log message.
     ///   - processor: Backend service which manages and sends logs to Loki.
-    public init(label: String, processor: LokiLogProcessor<Clock>) {
+    public init(
+        label: String,
+        service: String = ProcessInfo.processInfo.processName,
+        lokiLabels: [String: String] = [:],
+        processor: LokiLogProcessor<Clock>
+    ) {
         self.label = label
+        self.service = service
+        self.lokiLabels = lokiLabels
         self.processor = processor
     }
 
@@ -50,12 +68,13 @@ public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable wh
         )
 
         let labels = [
-            "service": label,
+            "service": service,
+            "logger": label,
             "source": source,
             "file": file,
             "function": function,
             "line": String(line)
-        ]
+        ].merging(lokiLabels) { old, _ in old } // message specific labels win!
 
         processor.addEntryToBatch(.init(
             timestamp: .init(),

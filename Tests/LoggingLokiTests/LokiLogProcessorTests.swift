@@ -5,7 +5,7 @@ final class LokiLogProcessorTests: XCTestCase {
     func testLogFmtFormat() {
         let configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
-            metadataFormat: .logfmt
+            logFormat: .logfmt
         )
         let processor = LokiLogProcessor(configuration: configuration)
         let raw = LokiLog(
@@ -25,7 +25,7 @@ final class LokiLogProcessorTests: XCTestCase {
     func testCustomFormat() {
         let configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
-            metadataFormat: .custom({ level, message, metadata in
+            logFormat: .custom({ level, message, metadata in
                 "\(level.rawValue.uppercased()): \(message) [\(metadata.sorted(by: { $0.key < $1.key }).map({ "\($0.key): \($0.value)" }).joined(separator: ", "))]"
             })
         )
@@ -44,7 +44,7 @@ final class LokiLogProcessorTests: XCTestCase {
     func testLogFmtFormatEmptyMetadata() {
         var configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
-            metadataFormat: .logfmt
+            logFormat: .logfmt
         )
         configuration.encoding = .json
         let processor = LokiLogProcessor(configuration: configuration)
