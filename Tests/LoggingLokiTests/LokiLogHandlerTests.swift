@@ -34,7 +34,8 @@ final class LokiLogHandlerTests: XCTestCase {
     let expectedFile = "TestFile.swift"
     let expectedFunction = "testFunction(_:)"
     let expectedLine: UInt = 42
-    let expectedService = "test.swift-log"
+    let expectedLabel = "test.swift-log"
+    let expectedService = "LokiLogTests"
 
     func testLog() async throws {
         let transport = TestTransport()
@@ -50,8 +51,8 @@ final class LokiLogHandlerTests: XCTestCase {
         let processing = Task {
             try await processor.run()
         }
-        let handler = LokiLogHandler(label: expectedService, processor: processor)
-        
+        let handler = LokiLogHandler(label: expectedLabel, service: expectedService, processor: processor)
+
         handler.log(level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"], source: expectedSource, file: expectedFile, function: expectedFunction, line: expectedLine)
         
         clock.advance(by: .seconds(5)) // tick
@@ -80,8 +81,8 @@ final class LokiLogHandlerTests: XCTestCase {
         let processing = Task {
             try await processor.run()
         }
-        let handler = LokiLogHandler(label: expectedService, processor: processor)
-        
+        let handler = LokiLogHandler(label: expectedLabel, service: expectedService, processor: processor)
+
         handler.log(level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"], source: expectedSource, file: expectedFile, function: expectedFunction, line: expectedLine)
         
         clock.advance(by: .seconds(5)) // tick
@@ -119,7 +120,7 @@ final class LokiLogHandlerTests: XCTestCase {
         let processing = Task {
             try await processor.run()
         }
-        let handler = LokiLogHandler(label: expectedService, processor: processor)
+        let handler = LokiLogHandler(label: expectedLabel, service: expectedService, processor: processor)
         handler.log(level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"], source: expectedSource, file: expectedFile, function: expectedFunction, line: expectedLine)
         await sleepCalls.next()
         XCTAssertNil(transformer.logs?.first)
@@ -154,6 +155,9 @@ final class LokiLogHandlerTests: XCTestCase {
         }) ?? false, file: file, line: line)
         XCTAssert(transformer.labels?.contains(where: { key, value in
             value == String(expectedLine) && key == "line"
+        }) ?? false, file: file, line: line)
+        XCTAssert(transformer.labels?.contains(where: { key, value in
+            value == expectedLabel && key == "logger"
         }) ?? false, file: file, line: line)
         XCTAssert(transformer.labels?.contains(where: { key, value in
             value == expectedService && key == "service"
