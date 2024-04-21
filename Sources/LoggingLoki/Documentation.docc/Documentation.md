@@ -2,15 +2,22 @@
 
 This library can be used as an implementation of Apple's swift-log interface that captures console logs from apps or services and sends them to Grafana Loki.
 
-## Overview
+## Usage
 
-LoggingLoki provides a logging backend for [swift-log](https://github.com/apple/swift-log) with support for sending logs to a [Grafana Loki](https://grafana.com/oss/loki) instance. It includes the following list of features.
+You'll have to configure your Logger with a ``LokiLogHandler``.
 
-- Supports Darwin (macOS), Linux platforms, iOS, watchOS and tvOS
-- Different logging levels such as `trace`, `debug`, `info`, `notice`, `warning`, `error` and `critical`
+The handler needs a ``LokiLogProcessor`` to send logs to your Loki server.
+> Note: Logs can be sent to Loki as long as ``LokiLogProcessor/run()`` is not cancelled.
+
+@Snippet(path: "swift-log-loki/Snippets/BasicUsage", slice: "setup")
 
 ## Topics
 
 ### Essentials
 
 - ``LokiLogHandler``
+- ``LokiLogProcessor``
+
+### Configuration
+
+- ``LokiLogProcessorConfiguration``

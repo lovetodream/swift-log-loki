@@ -1,5 +1,6 @@
 # SwiftLogLoki
 
+[![Coverage](https://codecov.io/gh/lovetodream/swift-log-loki/graph/badge.svg?token=Q70PZWS0T2)](https://codecov.io/gh/lovetodream/swift-log-loki)
 [![Tests](https://github.com/lovetodream/swift-log-loki/actions/workflows/tests.yml/badge.svg)](https://github.com/lovetodream/swift-log-loki/actions/workflows/tests.yml)
 [![Docs](https://github.com/lovetodream/swift-log-loki/actions/workflows/deploy_docs.yml/badge.svg)](https://github.com/lovetodream/swift-log-loki/actions/workflows/deploy_docs.yml)
 
@@ -7,7 +8,7 @@ This library can be used as an implementation of Apple's [swift-log](https://git
 
 ## Features
 
-- Supports Darwin (macOS), Linux platforms, iOS, watchOS and tvOS
+- Supports Linux and all Apple platforms
 - Different logging levels such as `trace`, `debug`, `info`, `notice`, `warning`, `error` and `critical`
 - Option to send logs as snappy-compressed Protobuf (default) or JSON
 - Batching logs via `TimeInterval`, amount of log entries or a mix of those options
@@ -19,7 +20,7 @@ This library can be used as an implementation of Apple's [swift-log](https://git
 Add `LoggingLoki` to the dependencies within your application's `Package.swift` file.
 
 ```swift
-.package(url: "https://github.com/lovetodream/swift-log-loki.git", from: "1.0.0"),
+.package(url: "https://github.com/lovetodream/swift-log-loki.git", from: "2.0.0"),
 ```
 
 Add `LoggingLoki` to your target's dependencies.
@@ -38,25 +39,23 @@ Go to `File` > `Add Packages`, enter the Package URL `https://github.com/lovetod
 You can use LoggingLoki as your default Log Handler for [swift-log](https://github.com/apple/swift-log).
 
 ```swift
-import LoggingLoki
 import Logging
+import LoggingLoki
 
-// yourLokiURL: e.g. http://localhost:3100 as URL
-LoggingSystem.bootstrap { LokiLogHandler(label: $0, lokiURL: yourLokiURL) }
+let processor = LokiLogProcessor(
+    configuration: LokiLogProcessorConfiguration(lokiURL: "http://localhost:3100")
+)
+LoggingSystem.bootstrap { label in
+    LokiLogHandler(label: label, processor: processor)
+}
+
+try await withThrowingDiscardingTaskGroup { group in
+    group.addTask {
+        // The processor has to run in the background to send logs to Loki.
+        try await processor.run()
+    }
+}
 ```
-
-### Example Usage with [Swift Vapor](https://vapor.codes)
-
-LoggingLoki works great with [Swift Vapor](https://vapor.codes), to send all your logs to [Grafana Loki](https://grafana.com/oss/loki) add the following to the top of your `configure(_:)` method inside of `configure.swift`.
-
-```swift
-app.logger = Logger(label: app.logger.label, factory: { label in
-    // yourLokiURL: e.g. http://localhost:3100 as URL
-    LokiLogHandler(label: label, lokiURL: yourLokiURL)
-})
-```
-
-For more information about Logging in [Swift Vapor](https://vapor.codes) take a look at the [Official Documentation](https://docs.vapor.codes/basics/logging/). 
 
 ## API documentation
 

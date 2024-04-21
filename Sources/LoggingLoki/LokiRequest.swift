@@ -1,9 +1,9 @@
 struct LokiRequest: Encodable, Sendable {
     var streams: [LokiStream]
 
-    static func fromBatch(_ batch: Batch) -> LokiRequest {
+    static func from(entries: [BatchEntry]) -> LokiRequest {
         var request = LokiRequest(streams: [])
-        for entry in batch.entries {
+        for entry in entries {
             request.streams.append(LokiStream(entry.logEntries, with: entry.labels))
         }
         return request

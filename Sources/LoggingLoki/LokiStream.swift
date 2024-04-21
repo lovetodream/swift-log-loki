@@ -1,24 +1,33 @@
-import class Foundation.NumberFormatter
-import class Foundation.NSNumber
-
 struct LokiStream: Encodable, Sendable {
-    var stream: Dictionary<String, String>
-    var values: Array<Array<String>>
+    typealias Value = (String, String, [String: String]?)
 
-    init(_ logs: [LokiLog], with labels: LokiLabels) {
+    var stream: [String: String]
+    var values: [Value]
+
+    init(_ logs: [LokiLog.Transport], with labels: [String: String]) {
         self.stream = labels
-        self.values = logs.compactMap { log in
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.groupingSeparator = ""
-            #if os(macOS) || !canImport(Darwin)
-            formatter.thousandSeparator = ""
-            #endif
-            let timestamp = Int64(log.timestamp.timeIntervalSince1970 * 1_000_000_000) as NSNumber
-            guard let formattedTimestamp = formatter.string(from: timestamp) else {
-                return nil
-            }
-            return [formattedTimestamp, log.message]
+        self.values = logs.map { log -> Value in
+            let timestamp = Int64(log.timestamp.timeIntervalSince1970 * 1_000_000_000)
+            return ("\(timestamp)", log.line, log.metadata?.isEmpty == false ? log.metadata : nil)
         }
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(stream, forKey: .stream)
+        var valuesContainer = container.nestedUnkeyedContainer(forKey: .values)
+        for value in values {
+            var singleValueContainer = valuesContainer.nestedUnkeyedContainer()
+            try singleValueContainer.encode(value.0)
+            try singleValueContainer.encode(value.1)
+            if let metadata = value.2 {
+                try singleValueContainer.encode(metadata)
+            }
+        }
+    }
+
+    enum CodingKeys: CodingKey {
+        case stream
+        case values
     }
 }

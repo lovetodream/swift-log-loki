@@ -7,13 +7,28 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  test:
+    container:
+      image: swift:5.9-jammy
 
     runs-on: ubuntu-latest
+
+    services:
+      loki:
+        image: grafana/loki:3.0.0
 
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: swift build -v
+      run: swift build
     - name: Run tests
-      run: swift test -v
+      run: swift test --enable-code-coverage
+      env:
+        XCT_LOKI_URL: http://loki:3100
+    - name: Prepare Code Coverage
+      run: llvm-cov export -format="lcov" .build/debug/swift-log-lokiPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata -ignore-filename-regex="\.pb\.swift" > info.lcov
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: info.lcov
