@@ -3,6 +3,7 @@ import NIOHTTP1
 import AsyncHTTPClient
 import ServiceLifecycle
 import AsyncAlgorithms
+import NIOConcurrencyHelpers
 
 public struct LokiLogProcessorConfiguration: Sendable {
     /// The loki server URL, eg. `http://localhost:3100`.

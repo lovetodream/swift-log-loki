@@ -40,4 +40,22 @@ final class LokiLogProcessorTests: XCTestCase {
         XCTAssertNil(formatted.metadata)
         XCTAssertEqual(formatted.line, #"INFO: My log message [additional_key: value with whitespace, basic_key: basic_value]"#)
     }
+
+    func testLogFmtFormatEmptyMetadata() {
+        var configuration = LokiLogProcessorConfiguration(
+            lokiURL: "http://localhost:3100",
+            metadataFormat: .logfmt
+        )
+        configuration.encoding = .json
+        let processor = LokiLogProcessor(configuration: configuration)
+        let raw = LokiLog(
+            timestamp: .init(),
+            level: .info,
+            message: "My log message",
+            metadata: [:]
+        )
+        let formatted = processor.makeLog(raw)
+        XCTAssertNil(formatted.metadata)
+        XCTAssertEqual(formatted.line, #"[INFO] message="My log message""#)
+    }
 }
