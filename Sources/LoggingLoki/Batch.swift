@@ -1,19 +1,24 @@
 import Foundation
 
-struct Batch: Sendable {
+struct Batch<Clock: _Concurrency.Clock> {
     var entries: [BatchEntry]
 
-    let createdAt = Date()
+    let createdAt: Clock.Instant
 
-    var totalLogEntries: Int {
-        entries.flatMap { $0.logEntries }.count
+    var totalLogEntries: Int
+    
+    init(entries: [BatchEntry], createdAt: Clock.Instant) {
+        self.entries = entries
+        self.createdAt = createdAt
+        self.totalLogEntries = entries.flatMap(\.logEntries).count
     }
 
-    mutating func addEntry(_ log: LokiLog, with labels: LokiLabels) {
-        guard let index = entries.firstIndex(where: { $0.labels == labels }) else {
+    mutating func addEntry(_ log: LokiLog.Transport, with labels: [String: String]) {
+        if let index = entries.firstIndex(where: { $0.labels == labels }) {
+            entries[index].logEntries.append(log)
+        } else {
             entries.append(BatchEntry(labels: labels, logEntries: [log]))
-            return
         }
-        entries[index].logEntries.append(log)
+        totalLogEntries += 1
     }
 }

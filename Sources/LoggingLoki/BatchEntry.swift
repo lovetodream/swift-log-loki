@@ -1,4 +1,4 @@
 struct BatchEntry: Sendable {
-    var labels: LokiLabels
-    var logEntries: [LokiLog]
+    var labels: [String: String]
+    var logEntries: [LokiLog.Transport]
 }
