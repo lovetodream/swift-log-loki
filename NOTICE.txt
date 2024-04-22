@@ -1,20 +1,20 @@
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the swift-log-loki open source project
+// This source file is part of the SwiftLogLoki open source project
 //
-// Copyright (c) 2023 Timo Zacherl
-// Licensed under MIT
+// Copyright (c) 2024 Timo Zacherl and the SwiftLogLoki project authors
+// Licensed under Apache License v2.0
 //
 // See LICENSE for license information
 //
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
 
-This product contains a derivation of the NIOLock implementation
-from Swift NIO.
+This product contains a derivation of the MockClock implementation
+from Swift OTel.
 
-* LICENSE (Apache License 2.0):
-* https://www.apache.org/licenses/LICENSE-2.0
-* HOMEPAGE:
-* https://github.com/apple/swift-nio
+  * LICENSE (Apache License 2.0):
+    * https://www.apache.org/licenses/LICENSE-2.0
+  * HOMEPAGE:
+    * https://github.com/slashmo/swift-otel
