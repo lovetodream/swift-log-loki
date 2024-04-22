@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     - name: Run soundness
       run: |
         scripts/soundness.sh
@@ -31,13 +31,15 @@ jobs:
         image: grafana/loki:3.0.0
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     - name: Cache Swift PM
       uses: actions/cache@v4
       with:
         path: .build
         key: ${{ runner.os }}-ci-spm-${{ hashFiles('Package.swift') }}
         restore-keys: ${{ runner.os }}-ci-spm-
+    - name: Resolve Swift dependencies
+      run: swift package resolve
     - name: Build
       run: swift build
     - name: Run tests
