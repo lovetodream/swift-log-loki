@@ -27,10 +27,10 @@ jobs:
         cd swift-format
         git checkout "tags/$VERSION"
         swift build -c release
-        export SWIFTFORMAT_BIN=$(pwd)/.build/release/swift-format
         cd "${GITHUB_WORKSPACE}"
     - name: Run soundness
       run: |
+        export SWIFTFORMAT_BIN=$(pwd)/../swift-format/.build/release/swift-format
         scripts/soundness.sh
         exit $(git status --porcelain | wc -l)
 

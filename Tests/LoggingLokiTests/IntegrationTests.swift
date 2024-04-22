@@ -58,6 +58,44 @@ final class IntegrationTests: XCTestCase {
         try await runHappyPath(LokiJSONTransformer())
     }
 
+    func testTimeout() async throws {
+        try await withThrowingDiscardingTaskGroup { group in
+            let clock = TestClock()
+            let transport = InspectableTransport()
+            let processor = LokiLogProcessor(
+                configuration: .init(
+                    lokiURL: "http://localhost:420420",
+                    maxBatchTimeInterval: .seconds(10)),
+                transport: transport,
+                transformer: BadRequestTransformer(),
+                clock: clock
+            )
+            var sleepCalls = clock.sleepCalls.makeAsyncIterator()
+            group.addTask {
+                try await processor.run()
+            }
+            let handler = LokiLogHandler(
+                label: "com.timozacherl.swift-log-loki-tests", processor: processor)
+            logLine(handler: handler)
+            await sleepCalls.next()
+
+            // move forward in time until max batch time interval is exceeded
+            clock.advance(by: .seconds(5))  // tick
+            await sleepCalls.next()
+            clock.advance(by: .seconds(5))  // tick
+            await sleepCalls.next()
+
+            clock.advance(by: .seconds(30))
+            await sleepCalls.next()  // export
+            XCTAssertEqual(transport.transported.load(ordering: .relaxed), 0)
+            XCTAssertEqual(transport.errored.load(ordering: .relaxed), 1)
+            let errors = transport.errors.withLockedValue { $0 }
+            XCTAssertTrue(errors.first is CancellationError)
+
+            group.cancelAll()
+        }
+    }
+
     func testBadRequest() async throws {
         try await withThrowingDiscardingTaskGroup { group in
             let clock = TestClock()
