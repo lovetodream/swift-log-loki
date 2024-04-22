@@ -12,18 +12,18 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { actions: write, contents: read, security-events: write }
 
-    container: swift:5.9-jammy
+    container: swift:jammy
     
     steps:
     - uses: actions/checkout@v4
+
+    - name: Mark repo safe in non-fake global config
+      run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: swift
-        
-    - name: Mark repo safe in non-fake global config
-      run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
     - name: Cache Swift PM
       uses: actions/cache@v4
