@@ -1,5 +1,7 @@
 name: CI
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 on:
   push:
     branches: [ "main" ]
@@ -39,7 +41,7 @@ jobs:
 
   tests:
     container:
-      image: swift:5.1-jammy
+      image: swift:5.10-jammy
 
     runs-on: ubuntu-latest
 
