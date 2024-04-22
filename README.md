@@ -3,7 +3,7 @@
 [![Coverage](https://codecov.io/gh/lovetodream/swift-log-loki/graph/badge.svg?token=Q70PZWS0T2)][Coverage]
 [![Documentation](http://img.shields.io/badge/read_the-docs-2196f3.svg)][Documentation]
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-brightgreen)][Apache License]
-[![Tests](https://github.com/lovetodream/swift-log-loki/actions/workflows/tests.yml/badge.svg)](https://github.com/lovetodream/swift-log-loki/actions/workflows/tests.yml)
+[![CI](https://github.com/lovetodream/swift-log-loki/actions/workflows/ci.yml/badge.svg)](https://github.com/lovetodream/swift-log-loki/actions/workflows/ci.yml)
 [![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Flovetodream%2Fswift-log-loki%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/lovetodream/swift-log-loki)
 [![Supported Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Flovetodream%2Fswift-log-loki%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/lovetodream/swift-log-loki)
 
