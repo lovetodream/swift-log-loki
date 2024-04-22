@@ -30,7 +30,7 @@ jobs:
         cd "${GITHUB_WORKSPACE}"
     - name: Run soundness
       env:
-        SWIFTFORMAT_BIN: ${GITHUB_WORKSPACE}/../swift-format/.build/release/swift-format
+        SWIFTFORMAT_BIN: "${GITHUB_WORKSPACE}/../swift-format/.build/release/swift-format"
       run: |
         scripts/soundness.sh
         exit $(git status --porcelain | wc -l)
