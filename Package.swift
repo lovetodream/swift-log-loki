@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "swift-log-loki",
-    platforms: [.macOS(.v14), .iOS(.v17), .tvOS(.v17), .watchOS(.v9), .visionOS(.v1)],
+    platforms: [.macOS(.v14), .iOS(.v17), .tvOS(.v17), .watchOS(.v10), .visionOS(.v1)],
     products: [
         .library(name: "LoggingLoki", targets: ["LoggingLoki"]),
     ],

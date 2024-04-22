@@ -17,6 +17,8 @@ public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable wh
     /// Static labels sent to Loki, which should not depend on the context of a log message.
     public var lokiLabels: [String: String]
 
+    public var metadataProvider: Logger.MetadataProvider?
+
     /// Creates a log handler, which sends logs to Grafana Loki.
     ///
     /// @Snippet(path: "swift-log-loki/Snippets/BasicUsage", slice: "setup")
@@ -28,16 +30,19 @@ public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable wh
     ///              It will be sent to Loki as the `service` label.
     ///   - lokiLabels: Static labels sent to Loki, which should not depend on the context of a log message.
     ///   - processor: Backend service which manages and sends logs to Loki.
+    ///   - metadataProvider: A MetadataProvider, used to automatically inject runtime-generated metadata to all logs.
     public init(
         label: String,
         service: String = ProcessInfo.processInfo.processName,
         lokiLabels: [String: String] = [:],
-        processor: LokiLogProcessor<Clock>
+        processor: LokiLogProcessor<Clock>,
+        metadataProvider: Logger.MetadataProvider? = nil
     ) {
         self.label = label
         self.service = service
         self.lokiLabels = lokiLabels
         self.processor = processor
+        self.metadataProvider = metadataProvider
     }
 
     /// This method is called when a `LogHandler` must emit a log message. There is no need for the `LogHandler` to
