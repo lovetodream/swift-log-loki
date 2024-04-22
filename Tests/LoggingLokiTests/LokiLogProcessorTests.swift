@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+
 @testable import LoggingLoki
 
 final class LokiLogProcessorTests: XCTestCase {
@@ -51,7 +52,10 @@ final class LokiLogProcessorTests: XCTestCase {
         )
         let formatted = processor.makeLog(raw)
         XCTAssertNil(formatted.metadata)
-        XCTAssertEqual(formatted.line, #"INFO: My log message [additional_key: value with whitespace, basic_key: basic_value]"#)
+        XCTAssertEqual(
+            formatted.line,
+            #"INFO: My log message [additional_key: value with whitespace, basic_key: basic_value]"#
+        )
     }
 
     func testLogFmtFormatEmptyMetadata() {

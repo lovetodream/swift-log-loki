@@ -74,7 +74,8 @@ public final class TestClock: Clock, @unchecked Sendable {
 
     struct State {
         // We should use a Heap here
-        var continuations: [(id: UInt64, deadline: Instant, continuation: CheckedContinuation<Void, Error>)]
+        var continuations:
+            [(id: UInt64, deadline: Instant, continuation: CheckedContinuation<Void, Error>)]
         var now: Instant
     }
 

@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+
 @testable import LoggingLoki
 
 final class LokiLogProcessorConfigurationTests: XCTestCase {

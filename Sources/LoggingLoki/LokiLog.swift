@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-import struct Foundation.Date
 import Logging
+
+import struct Foundation.Date
 
 struct LokiLog {
     var timestamp: Date

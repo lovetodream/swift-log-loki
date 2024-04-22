@@ -19,7 +19,7 @@ struct Batch<Clock: _Concurrency.Clock> {
     let createdAt: Clock.Instant
 
     var totalLogEntries: Int
-    
+
     init(entries: [BatchEntry], createdAt: Clock.Instant) {
         self.entries = entries
         self.createdAt = createdAt

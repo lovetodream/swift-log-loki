@@ -11,23 +11,24 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
-import NIOHTTP1
-import AsyncHTTPClient
-import ServiceLifecycle
 import AsyncAlgorithms
+import AsyncHTTPClient
+import Logging
 import NIOConcurrencyHelpers
+import NIOHTTP1
+import ServiceLifecycle
 
 /// A configuration object for ``LokiLogProcessor``.
 public struct LokiLogProcessorConfiguration: Sendable {
     /// The loki server URL, eg. `http://localhost:3100`.
     public var lokiURL: String {
         didSet {
-            _lokiURL = if lokiURL.hasSuffix("/") {
-                lokiURL + "loki/api/v1/push"
-            } else {
-                lokiURL + "/loki/api/v1/push"
-            }
+            _lokiURL =
+                if lokiURL.hasSuffix("/") {
+                    lokiURL + "loki/api/v1/push"
+                } else {
+                    lokiURL + "/loki/api/v1/push"
+                }
         }
     }
     internal private(set) var _lokiURL: String
@@ -60,7 +61,8 @@ public struct LokiLogProcessorConfiguration: Sendable {
 
     /// Indicates the format of log messages sent to Loki.
     public struct LogFormat: Sendable {
-        public typealias CustomFormatter = @Sendable (Logger.Level, Logger.Message, Logger.Metadata) -> String
+        public typealias CustomFormatter = @Sendable (Logger.Level, Logger.Message, Logger.Metadata)
+            -> String
 
         enum Code {
             case logfmt
@@ -110,7 +112,7 @@ public struct LokiLogProcessorConfiguration: Sendable {
         public static let json = Encoding(code: .json)
         public static let protobuf = Encoding(code: .protobuf)
     }
-    
+
     /// Initializes a configuration.
     /// - Parameters:
     ///   - lokiURL: The URL of the Loki server where to logs will be sent to.
@@ -127,11 +129,12 @@ public struct LokiLogProcessorConfiguration: Sendable {
         logFormat: LogFormat = .structured
     ) {
         self.lokiURL = lokiURL
-        self._lokiURL = if lokiURL.hasSuffix("/") {
-            lokiURL + "loki/api/v1/push"
-        } else {
-            lokiURL + "/loki/api/v1/push"
-        }
+        self._lokiURL =
+            if lokiURL.hasSuffix("/") {
+                lokiURL + "loki/api/v1/push"
+            } else {
+                lokiURL + "/loki/api/v1/push"
+            }
         self.headers = headers
         self.batchSize = batchSize
         self.maxBatchTimeInterval = maxBatchTimeInterval
@@ -145,7 +148,8 @@ public struct LokiLogProcessorConfiguration: Sendable {
 /// The service is sending logs as long as ``LokiLogProcessor/run()`` is not cancelled.
 ///
 /// It conforms to ``ServiceLifecycle.Service``.
-public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service where Clock.Duration == Duration {
+public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service
+where Clock.Duration == Duration {
     final class _Storage: Sendable {
         fileprivate let _value: NIOLockedValueBox<Batch<Clock>?> = NIOLockedValueBox(nil)
     }
@@ -180,11 +184,13 @@ public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service whe
         self.stream = stream
         self.continuation = continuation
     }
-    
+
     public func run() async throws {
         try await withThrowingDiscardingTaskGroup { group in
             group.addTask {
-                for try await _ in AsyncTimerSequence.repeating(every: configuration.exportInterval, clock: clock).cancelOnGracefulShutdown() {
+                for try await _ in AsyncTimerSequence.repeating(
+                    every: configuration.exportInterval, clock: clock
+                ).cancelOnGracefulShutdown() {
                     await tick()
                 }
             }
@@ -213,7 +219,8 @@ public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service whe
             guard let batch = safeBatch else { return nil }
 
             if let maxBatchTimeInterval = configuration.maxBatchTimeInterval,
-               batch.createdAt.advanced(by: maxBatchTimeInterval) <= clock.now {
+                batch.createdAt.advanced(by: maxBatchTimeInterval) <= clock.now
+            {
                 safeBatch = nil
                 return batch
             }
@@ -225,14 +232,16 @@ public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service whe
 
             return nil
         }
-        
+
         guard let batch else { return }
         do {
             try await withTimeout(configuration.exportTimeout, clock: clock) {
                 try await sendBatch(batch)
             }
         } catch is CancellationError {
-            logger.warning("Timed out exporting logs.", metadata: ["timeout": "\(configuration.exportTimeout)"])
+            logger.warning(
+                "Timed out exporting logs.", metadata: ["timeout": "\(configuration.exportTimeout)"]
+            )
         } catch {
             logger.error("Failed to export logs.", metadata: ["error": "\(error)"])
         }
@@ -269,7 +278,7 @@ public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service whe
         try await transport
             .transport(buffer, url: configuration._lokiURL, headers: headers)
     }
-    
+
     private func prettify(_ metadata: Logger.Metadata) -> String? {
         if metadata.isEmpty {
             return nil
@@ -291,20 +300,21 @@ extension LokiLogProcessor where Clock == ContinuousClock {
     ///
     /// The processor can be used on multiple ``LokiLogHandler``s,
     /// it will manage the logs accordingly.
-    /// 
+    ///
     /// - Parameter configuration: A configuration object used to setup the processors behaviour.
     public init(configuration: Configuration) {
-        let transformer: LokiTransformer = switch configuration.encoding.code {
-        case .json:
-            LokiJSONTransformer()
-        case .protobuf:
-            LokiProtobufTransformer()
-        }
+        let transformer: LokiTransformer =
+            switch configuration.encoding.code {
+            case .json:
+                LokiJSONTransformer()
+            case .protobuf:
+                LokiProtobufTransformer()
+            }
         let clock = ContinuousClock()
         self.init(
             configuration: configuration,
             transport: HTTPClient.shared,
-            transformer: transformer, 
+            transformer: transformer,
             clock: clock
         )
     }

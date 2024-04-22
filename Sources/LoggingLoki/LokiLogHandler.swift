@@ -11,11 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-import class Foundation.ProcessInfo
 import Logging
 
+import class Foundation.ProcessInfo
+
 /// ``LokiLogHandler`` is a logging backend for `Logging`.
-public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable where Clock.Duration == Duration {
+public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable
+where Clock.Duration == Duration {
 
     private let processor: LokiLogProcessor<Clock>
 
@@ -91,15 +93,16 @@ public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable wh
             "source": source,
             "file": file,
             "function": function,
-            "line": String(line)
-        ].merging(lokiLabels) { old, _ in old } // message specific labels win!
+            "line": String(line),
+        ].merging(lokiLabels) { old, _ in old }  // message specific labels win!
 
-        processor.addEntryToBatch(.init(
-            timestamp: .init(),
-            level: level,
-            message: message,
-            metadata: effectiveMetadata
-        ), with: labels)
+        processor.addEntryToBatch(
+            .init(
+                timestamp: .init(),
+                level: level,
+                message: message,
+                metadata: effectiveMetadata
+            ), with: labels)
     }
 
     /// Add, remove, or change the logging metadata.
@@ -134,7 +137,9 @@ public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable wh
     ///        `LogHandler`.
     public var logLevel: Logger.Level = .info
 
-    internal static func prepareMetadata(base: Logger.Metadata, provider: Logger.MetadataProvider?, explicit: Logger.Metadata?) -> Logger.Metadata {
+    internal static func prepareMetadata(
+        base: Logger.Metadata, provider: Logger.MetadataProvider?, explicit: Logger.Metadata?
+    ) -> Logger.Metadata {
         var metadata = base
 
         let provided = provider?.get() ?? [:]

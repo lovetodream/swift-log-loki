@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+import AsyncHTTPClient
 import NIOCore
 import NIOHTTP1
-import AsyncHTTPClient
 
 protocol LokiTransport: Sendable {
     func transport(_ data: ByteBuffer, url: String, headers: HTTPHeaders) async throws
