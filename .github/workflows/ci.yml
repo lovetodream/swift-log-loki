@@ -8,14 +8,17 @@ on:
 
 jobs:
   soundness:
-    name: Soundness Checks
+    container:
+      image: swift:5.9-jammy
+  
+    runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
     - name: Run soundness
       run: |
-	scripts/soundness.sh
-	exit $(git status --porcelain | wc -l)
+        scripts/soundness.sh
+        exit $(git status --porcelain | wc -l)
 
   tests:
     container:
@@ -43,12 +46,12 @@ jobs:
         XCT_LOKI_URL: http://loki:3100
     - name: Prepare Code Coverage
       run: |
-	llvm-cov export -format="lcov" \
-	  .build/debug/swift-log-lokiPackageTests.xctest \
-	  -instr-profile .build/debug/codecov/default.profdata \
-	  -ignore-filename-regex="\.pb\.swift" \
-	  -ignore-filename-regex="\/Tests\/" \
-	> info.lcov
+        llvm-cov export -format "lcov" \
+          .build/debug/swift-log-lokiPackageTests.xctest \
+          -ignore-filename-regex="\.pb\.swift" \
+          -ignore-filename-regex="\/Tests\/" \
+          -instr-profile .build/debug/codecov/default.profdata \
+        > info.lcov
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       with:
