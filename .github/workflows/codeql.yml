@@ -11,8 +11,6 @@ jobs:
     name: Analyze
     runs-on: ubuntu-latest
     permissions: { actions: write, contents: read, security-events: write }
-
-    container: swift:jammy
     
     steps:
     - uses: actions/checkout@v4
