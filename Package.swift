@@ -5,7 +5,7 @@ let package = Package(
     name: "swift-log-loki",
     platforms: [.macOS(.v14), .iOS(.v17), .tvOS(.v17), .watchOS(.v10), .visionOS(.v1)],
     products: [
-        .library(name: "LoggingLoki", targets: ["LoggingLoki"]),
+        .library(name: "LoggingLoki", targets: ["LoggingLoki"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),

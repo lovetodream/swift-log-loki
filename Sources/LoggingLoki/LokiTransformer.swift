@@ -1,8 +1,22 @@
-import class Foundation.JSONEncoder
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the SwiftLogLoki open source project
+//
+// Copyright (c) 2024 Timo Zacherl and the SwiftLogLoki project authors
+// Licensed under Apache License v2.0
+//
+// See LICENSE for license information
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+//===----------------------------------------------------------------------===//
+
 import NIOCore
-import NIOHTTP1
 import NIOFoundationCompat
+import NIOHTTP1
 import Snappy
+
+import class Foundation.JSONEncoder
 
 protocol LokiTransformer: Sendable {
     func transform(_ entries: [BatchEntry], headers: inout HTTPHeaders) throws -> ByteBuffer
@@ -33,7 +47,9 @@ struct LokiProtobufTransformer: LokiTransformer {
         let proto = Logproto_PushRequest.with { request in
             request.streams = entries.map { batchEntry in
                 Logproto_StreamAdapter.with { stream in
-                    stream.labels = "{" + batchEntry.labels.map { "\($0)=\"\($1)\"" }.joined(separator: ",") + "}"
+                    stream.labels =
+                        "{" + batchEntry.labels.map { "\($0)=\"\($1)\"" }.joined(separator: ",")
+                        + "}"
                     stream.entries = batchEntry.logEntries.map { log in
                         Logproto_EntryAdapter.with { entry in
                             entry.timestamp = .init(date: log.timestamp)
