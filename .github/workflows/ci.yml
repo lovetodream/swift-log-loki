@@ -11,13 +11,11 @@ on:
 jobs:
   soundness:
     container:
-      image: mtgto/swift-format:5.10
+      image: ghcr.io/lovetodream/swift-format-ci:main
   
     runs-on: ubuntu-latest
     
     steps:
-    - name: Install git
-      run: env DEBIAN_FRONTEND=noninteractive apt-get install -y git
     - uses: actions/checkout@v4
     # - name: Mark repo safe in non-fake global config
     #   run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
