@@ -155,6 +155,10 @@ final class LokiLogHandlerTests: XCTestCase {
         XCTAssertEqual(metadata7, ["hello": "how are you"])
         let metadata8 = LokiLogHandler<TestClock>.prepareMetadata(base: ["hello": "there"], provider: .init({ ["hello": "how are you"] }), explicit: ["hello": "I am fine"])
         XCTAssertEqual(metadata8, ["hello": "I am fine"])
+        var handler = LokiLogHandler(label: "test", processor: .init(configuration: .init(lokiURL: "")))
+        handler[metadataKey: "key"] = "value"
+        XCTAssertEqual(handler.metadata, ["key": "value"])
+        XCTAssertEqual(handler[metadataKey: "key"], "value")
     }
 
     func checkIfLogExists(for transformer: TestTransformer, file: StaticString = #filePath, line: UInt = #line) throws {
