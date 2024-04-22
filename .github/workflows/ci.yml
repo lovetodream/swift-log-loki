@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  soundness:
+    name: Soundness Checks
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run soundness
+      run: |
+	scripts/soundness.sh
+	exit $(git status --porcelain | wc -l)
+
+  tests:
+    container:
+      image: swift:5.9-jammy
+
+    runs-on: ubuntu-latest
+
+    services:
+      loki:
+        image: grafana/loki:3.0.0
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Cache Swift PM
+      uses: actions/cache@v4
+      with:
+        path: .build
+        key: ${{ runner.os }}-ci-spm-${{ hashFiles('Package.swift') }}
+        restore-keys: ${{ runner.os }}-ci-spm-
+    - name: Build
+      run: swift build
+    - name: Run tests
+      run: swift test --enable-code-coverage
+      env:
+        XCT_LOKI_URL: http://loki:3100
+    - name: Prepare Code Coverage
+      run: |
+	llvm-cov export -format="lcov" \
+	  .build/debug/swift-log-lokiPackageTests.xctest \
+	  -instr-profile .build/debug/codecov/default.profdata \
+	  -ignore-filename-regex="\.pb\.swift" \
+	  -ignore-filename-regex="\/Tests\/" \
+	> info.lcov
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: info.lcov
