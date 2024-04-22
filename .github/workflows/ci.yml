@@ -9,20 +9,37 @@ on:
 jobs:
   soundness:
     container:
-      image: swift:5.9-jammy
+      image: swift:jammy
   
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Mark repo safe in non-fake global config
+      run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
     - name: Run soundness
       run: |
         scripts/soundness.sh
         exit $(git status --porcelain | wc -l)
 
+  api-breakage:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    container: swift:jammy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # https://github.com/actions/checkout/issues/766
+      - name: API breaking changes
+        run: |
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          swift package diagnose-api-breaking-changes origin/main
+
   tests:
     container:
-      image: swift:5.9-jammy
+      image: swift:5.1-jammy
 
     runs-on: ubuntu-latest
 
@@ -31,7 +48,7 @@ jobs:
         image: grafana/loki:3.0.0
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Cache Swift PM
       uses: actions/cache@v4
       with:
