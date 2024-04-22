@@ -2,7 +2,8 @@
 
 [![Coverage](https://codecov.io/gh/lovetodream/swift-log-loki/graph/badge.svg?token=Q70PZWS0T2)](https://codecov.io/gh/lovetodream/swift-log-loki)
 [![Tests](https://github.com/lovetodream/swift-log-loki/actions/workflows/tests.yml/badge.svg)](https://github.com/lovetodream/swift-log-loki/actions/workflows/tests.yml)
-[![Docs](https://github.com/lovetodream/swift-log-loki/actions/workflows/deploy_docs.yml/badge.svg)](https://github.com/lovetodream/swift-log-loki/actions/workflows/deploy_docs.yml)
+[![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Flovetodream%2Fswift-log-loki%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/lovetodream/swift-log-loki)
+[![Supported Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Flovetodream%2Fswift-log-loki%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/lovetodream/swift-log-loki)
 
 This library can be used as an implementation of Apple's [swift-log](https://github.com/apple/swift-log) interface that captures console logs from apps or services and sends them to [Grafana Loki](https://grafana.com/oss/loki).
 
@@ -59,7 +60,7 @@ try await withThrowingDiscardingTaskGroup { group in
 
 ## API documentation
 
-For more information visit the [API reference](https://timozacherl.com/swift-log-loki/documentation/loggingloki/).
+For more information visit the [API reference](https://swiftpackageindex.com/lovetodream/swift-log-loki/documentation/loggingloki).
 
 ## License
 

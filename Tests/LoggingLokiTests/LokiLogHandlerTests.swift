@@ -138,6 +138,29 @@ final class LokiLogHandlerTests: XCTestCase {
         processing.cancel()
     }
 
+    func testMetadataPreparation() {
+        let metadata1 = LokiLogHandler<TestClock>.prepareMetadata(base: [:], provider: .init({ [:] }), explicit: [:])
+        XCTAssertEqual(metadata1, [:])
+        let metadata2 = LokiLogHandler<TestClock>.prepareMetadata(base: ["hello": "there"], provider: .init({ [:] }), explicit: [:])
+        XCTAssertEqual(metadata2, ["hello": "there"])
+        let metadata3 = LokiLogHandler<TestClock>.prepareMetadata(base: ["hello": "there"], provider: .init({ ["provided": "metadata"] }), explicit: [:])
+        XCTAssertEqual(metadata3, ["hello": "there", "provided": "metadata"])
+        let metadata4 = LokiLogHandler<TestClock>.prepareMetadata(base: ["hello": "there"], provider: .init({ ["provided": "metadata"] }), explicit: ["explicit": "metadata"])
+        XCTAssertEqual(metadata4, ["hello": "there", "provided": "metadata", "explicit": "metadata"])
+        let metadata5 = LokiLogHandler<TestClock>.prepareMetadata(base: ["hello": "there"], provider: nil, explicit: ["explicit": "metadata"])
+        XCTAssertEqual(metadata5, ["hello": "there", "explicit": "metadata"])
+        let metadata6 = LokiLogHandler<TestClock>.prepareMetadata(base: ["hello": "there"], provider: nil, explicit: nil)
+        XCTAssertEqual(metadata6, ["hello": "there"])
+        let metadata7 = LokiLogHandler<TestClock>.prepareMetadata(base: ["hello": "there"], provider: .init({ ["hello": "how are you"] }), explicit: nil)
+        XCTAssertEqual(metadata7, ["hello": "how are you"])
+        let metadata8 = LokiLogHandler<TestClock>.prepareMetadata(base: ["hello": "there"], provider: .init({ ["hello": "how are you"] }), explicit: ["hello": "I am fine"])
+        XCTAssertEqual(metadata8, ["hello": "I am fine"])
+        var handler = LokiLogHandler(label: "test", processor: .init(configuration: .init(lokiURL: "")))
+        handler[metadataKey: "key"] = "value"
+        XCTAssertEqual(handler.metadata, ["key": "value"])
+        XCTAssertEqual(handler[metadataKey: "key"], "value")
+    }
+
     func checkIfLogExists(for transformer: TestTransformer, file: StaticString = #filePath, line: UInt = #line) throws {
         let firstLog = try XCTUnwrap(transformer.logs?.first, file: file, line: line)
 
