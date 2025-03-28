@@ -153,7 +153,8 @@ final class BadRequestTransformer: LokiTransformer {
             }
             var handler = LokiLogHandler(
                 label: "com.timozacherl.swift-log-loki-tests", processor: processor)
-            handler.lokiLabels["service.name"] = "ora"
+            handler.lokiLabels["service.name"] = "runner_service"
+            handler.lokiLabels["app"] = "my_test_app"
             logLine(handler: handler)
             await sleepCalls.next()
 

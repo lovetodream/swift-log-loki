@@ -175,7 +175,7 @@ final class TestTransport: LokiTransport {
         processing.cancel()
     }
 
-    func testMetadataPreparation() {
+    @Test func metadataPreparation() {
         let metadata1 = LokiLogHandler<TestClock>.prepareMetadata(
             base: [:], provider: .init({ [:] }), explicit: [:])
         #expect(metadata1 == [:])
