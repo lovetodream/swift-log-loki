@@ -11,7 +11,7 @@ on:
 jobs:
   soundness:
     container:
-      image: ghcr.io/lovetodream/swift-format-ci:v5.10.0
+      image: swift:jammy
   
     runs-on: ubuntu-latest
     
@@ -41,7 +41,7 @@ jobs:
 
   tests:
     container:
-      image: swift:5.10-jammy
+      image: swift:6.0-jammy
 
     runs-on: ubuntu-latest
 
