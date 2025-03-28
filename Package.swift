@@ -1,9 +1,9 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
     name: "swift-log-loki",
-    platforms: [.macOS(.v14), .iOS(.v17), .tvOS(.v17), .watchOS(.v10), .visionOS(.v1)],
+    platforms: [.macOS(.v15), .iOS(.v18), .tvOS(.v18), .watchOS(.v11), .visionOS(.v2)],
     products: [
         .library(name: "LoggingLoki", targets: ["LoggingLoki"])
     ],
@@ -24,7 +24,8 @@ let package = Package(
                 .product(name: "Snappy", package: "swift-snappy"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
-            ]
+            ],
+            exclude: ["Proto/push.proto"]
         ),
         .testTarget(name: "LoggingLokiTests", dependencies: ["LoggingLoki"]),
     ]

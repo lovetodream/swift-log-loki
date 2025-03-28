@@ -14,9 +14,9 @@
 import AsyncAlgorithms
 import AsyncHTTPClient
 import Logging
-import NIOConcurrencyHelpers
 import NIOHTTP1
 import ServiceLifecycle
+import Synchronization
 
 /// A configuration object for ``LokiLogProcessor``.
 public struct LokiLogProcessorConfiguration: Sendable {
@@ -151,7 +151,7 @@ public struct LokiLogProcessorConfiguration: Sendable {
 public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service
 where Clock.Duration == Duration {
     final class _Storage: Sendable {
-        fileprivate let _value: NIOLockedValueBox<Batch<Clock>?> = NIOLockedValueBox(nil)
+        fileprivate let _value: Mutex<Batch<Clock>?> = Mutex(nil)
     }
 
     public typealias Configuration = LokiLogProcessorConfiguration
@@ -198,7 +198,7 @@ where Clock.Duration == Duration {
             group.addTask {
                 await withGracefulShutdownHandler {
                     for await (log, labels) in stream {
-                        self.storage._value.withLockedValue { batch in
+                        self.storage._value.withLock { batch in
                             if batch != nil {
                                 batch!.addEntry(log, with: labels)
                             } else {
@@ -215,7 +215,7 @@ where Clock.Duration == Duration {
     }
 
     private func tick() async {
-        let batch: Batch<Clock>? = self.storage._value.withLockedValue { safeBatch in
+        let batch: Batch<Clock>? = self.storage._value.withLock { safeBatch in
             guard let batch = safeBatch else { return nil }
 
             if let maxBatchTimeInterval = configuration.maxBatchTimeInterval,

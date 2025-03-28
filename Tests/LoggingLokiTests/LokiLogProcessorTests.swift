@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
+import Testing
 
 @testable import LoggingLoki
 
-final class LokiLogProcessorTests: XCTestCase {
-    func testLogFmtFormat() {
+@Suite struct LokiLogProcessorTests {
+    @Test func logFmtFormat() {
         let configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
             logFormat: .logfmt
@@ -29,14 +29,14 @@ final class LokiLogProcessorTests: XCTestCase {
             metadata: ["basic_key": "basic_value", "additional_key": "value with whitespace"]
         )
         let formatted = processor.makeLog(raw)
-        XCTAssertNil(formatted.metadata)
-        XCTAssertTrue(formatted.line.starts(with: "[INFO] "))
-        XCTAssertTrue(formatted.line.contains("basic_key=basic_value"))
-        XCTAssertTrue(formatted.line.contains(#"additional_key="value with whitespace""#))
-        XCTAssertTrue(formatted.line.contains(#"message="My log message""#))
+        #expect(formatted.metadata == nil)
+        #expect(formatted.line.starts(with: "[INFO] "))
+        #expect(formatted.line.contains("basic_key=basic_value"))
+        #expect(formatted.line.contains(#"additional_key="value with whitespace""#))
+        #expect(formatted.line.contains(#"message="My log message""#))
     }
 
-    func testCustomFormat() {
+    @Test func customFormat() {
         let configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
             logFormat: .custom({ level, message, metadata in
@@ -51,14 +51,14 @@ final class LokiLogProcessorTests: XCTestCase {
             metadata: ["basic_key": "basic_value", "additional_key": "value with whitespace"]
         )
         let formatted = processor.makeLog(raw)
-        XCTAssertNil(formatted.metadata)
-        XCTAssertEqual(
-            formatted.line,
-            #"INFO: My log message [additional_key: value with whitespace, basic_key: basic_value]"#
+        #expect(formatted.metadata == nil)
+        #expect(
+            formatted.line
+                == #"INFO: My log message [additional_key: value with whitespace, basic_key: basic_value]"#
         )
     }
 
-    func testLogFmtFormatEmptyMetadata() {
+    @Test func logFmtFormatEmptyMetadata() {
         var configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
             logFormat: .logfmt
@@ -72,7 +72,7 @@ final class LokiLogProcessorTests: XCTestCase {
             metadata: [:]
         )
         let formatted = processor.makeLog(raw)
-        XCTAssertNil(formatted.metadata)
-        XCTAssertEqual(formatted.line, #"[INFO] message="My log message""#)
+        #expect(formatted.metadata == nil)
+        #expect(formatted.line == #"[INFO] message="My log message""#)
     }
 }

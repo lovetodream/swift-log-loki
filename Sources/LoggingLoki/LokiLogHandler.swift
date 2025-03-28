@@ -30,7 +30,10 @@ where Clock.Duration == Duration {
     /// This value will be sent to Grafana Loki as the `service` label.
     public var service: String
     /// Static labels sent to Loki, which should not depend on the context of a log message.
-    public var lokiLabels: [String: String]
+    public var lokiLabels: [String: String] {
+        didSet { updateLokiLabels() }
+    }
+    private var _lokiLabels: [String: String]
 
     public var metadataProvider: Logger.MetadataProvider?
 
@@ -58,6 +61,9 @@ where Clock.Duration == Duration {
         self.lokiLabels = lokiLabels
         self.processor = processor
         self.metadataProvider = metadataProvider
+
+        self._lokiLabels = [:]
+        self.updateLokiLabels()
     }
 
     /// This method is called when a `LogHandler` must emit a log message. There is no need for the `LogHandler` to
@@ -67,7 +73,7 @@ where Clock.Duration == Duration {
     /// - parameters:
     ///     - level: The log level the message was logged at.
     ///     - message: The message to log. To obtain a `String` representation call `message.description`.
-    ///     - metadata: The metadata associated to this log message.
+    ///     - explicitMetadata: The metadata associated to this log message.
     ///     - source: The source where the log message originated, for example the logging module.
     ///     - file: The file the log message was emitted from.
     ///     - function: The function the log line was emitted from.
@@ -94,7 +100,7 @@ where Clock.Duration == Duration {
             "file": file,
             "function": function,
             "line": String(line),
-        ].merging(lokiLabels) { old, _ in old }  // message specific labels win!
+        ].merging(_lokiLabels) { old, _ in old }  // message specific labels win!
 
         processor.addEntryToBatch(
             .init(
@@ -111,7 +117,7 @@ where Clock.Duration == Duration {
     ///         only affect this very `LogHandler`.
     ///
     /// - parameters:
-    ///    - metadataKey: The key for the metadata item
+    ///    - key: The key for the metadata item
     public subscript(metadataKey key: String) -> Logger.Metadata.Value? {
         get {
             metadata[key]
@@ -160,4 +166,29 @@ where Clock.Duration == Duration {
         return metadata
     }
 
+    private mutating func updateLokiLabels() {
+        self._lokiLabels = self.lokiLabels.reduce(
+            into: [:],
+            { partialResult, pair in
+                partialResult[sanitizeKey(pair.key)] = pair.value
+            })
+    }
+
+    private func sanitizeKey(_ key: String) -> String {
+        let regex = /[a-zA-Z_:][a-zA-Z0-9_:]*/
+        // fast path
+        if (try? regex.wholeMatch(in: key)) != nil {
+            return key
+        }
+
+        var sanitizedKey = ""
+        for character in key {
+            if (try? regex.wholeMatch(in: "\(character)")) == nil {
+                sanitizedKey.append("_")
+            } else {
+                sanitizedKey.append(character)
+            }
+        }
+        return sanitizedKey
+    }
 }

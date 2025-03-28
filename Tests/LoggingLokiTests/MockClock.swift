@@ -24,7 +24,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import NIOConcurrencyHelpers
+import Synchronization
 
 public final class TestClock: Clock, @unchecked Sendable {
     public struct Instant: InstantProtocol {
@@ -69,7 +69,7 @@ public final class TestClock: Clock, @unchecked Sendable {
 
     public var minimumResolution: Duration = .zero
     public var now: Instant {
-        state.withLockedValue { $0.now }
+        state.withLock { $0.now }
     }
 
     struct State {
@@ -82,10 +82,10 @@ public final class TestClock: Clock, @unchecked Sendable {
     public let sleepCalls: AsyncStream<Void>
     private let sleepCallsContinuation: AsyncStream<Void>.Continuation
 
-    private let state = NIOLockedValueBox(State(continuations: [], now: .init()))
+    private let state = Mutex(State(continuations: [], now: .init()))
 
     public init(now: Instant = .init()) {
-        state.withLockedValue { $0.now = now }
+        state.withLock { $0.now = now }
         let (stream, continunation) = AsyncStream<Void>.makeStream()
         sleepCalls = stream
         sleepCallsContinuation = continunation
@@ -97,7 +97,7 @@ public final class TestClock: Clock, @unchecked Sendable {
                 enum Action {
                     case shouldResume, shouldCancel, none
                 }
-                let action = self.state.withLockedValue { state -> Action in
+                let action = self.state.withLock { state -> Action in
                     guard !Task.isCancelled else {
                         return .shouldCancel
                     }
@@ -119,7 +119,7 @@ public final class TestClock: Clock, @unchecked Sendable {
                 sleepCallsContinuation.yield()
             }
         } onCancel: {
-            let continuations = self.state.withLockedValue { state in
+            let continuations = self.state.withLock { state in
                 let continutations = state.continuations
                 state.continuations.removeAll()
                 return continutations
@@ -131,7 +131,7 @@ public final class TestClock: Clock, @unchecked Sendable {
     }
 
     public func advance(by duration: Duration = .zero) {
-        let continuationsToResume = state.withLockedValue { state in
+        let continuationsToResume = state.withLock { state in
             let deadline = state.now.advanced(by: duration)
             precondition(state.now < deadline)
             state.now = deadline
@@ -146,7 +146,7 @@ public final class TestClock: Clock, @unchecked Sendable {
     }
 
     public func advance(to deadline: Instant) {
-        let continuationsToResume = state.withLockedValue { state in
+        let continuationsToResume = state.withLock { state in
             precondition(state.now < deadline)
             state.now = deadline
 

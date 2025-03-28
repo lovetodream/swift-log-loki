@@ -12,29 +12,30 @@
 //===----------------------------------------------------------------------===//
 
 import AsyncHTTPClient
-import Atomics
-import NIOConcurrencyHelpers
 import NIOCore
 import NIOHTTP1
-import XCTest
+import Synchronization
+import Testing
+
+import func Foundation.getenv
 
 @testable import LoggingLoki
 
 final class InspectableTransport: LokiTransport {
     let actual = HTTPClient.shared
 
-    let transported = ManagedAtomic(0)
+    let transported = Atomic(0)
 
-    let errored = ManagedAtomic(0)
-    let errors: NIOLockedValueBox<[Error]> = NIOLockedValueBox([])
+    let errored = Atomic(0)
+    let errors: Mutex<[Error]> = Mutex([])
 
     func transport(_ data: ByteBuffer, url: String, headers: HTTPHeaders) async throws {
         do {
             try await actual.transport(data, url: url, headers: headers)
-            transported.wrappingIncrement(ordering: .relaxed)
+            transported.wrappingAdd(1, ordering: .relaxed)
         } catch {
-            errored.wrappingIncrement(ordering: .relaxed)
-            errors.withLockedValue { $0.append(error) }
+            errored.wrappingAdd(1, ordering: .relaxed)
+            errors.withLock { $0.append(error) }
         }
     }
 }
@@ -49,16 +50,16 @@ final class BadRequestTransformer: LokiTransformer {
     }
 }
 
-final class IntegrationTests: XCTestCase {
-    func testProtobufHappyPath() async throws {
+@Suite struct IntegrationTests {
+    @Test func protobufHappyPath() async throws {
         try await runHappyPath(LokiProtobufTransformer())
     }
 
-    func testJSONHappyPath() async throws {
+    @Test func jsonHappyPath() async throws {
         try await runHappyPath(LokiJSONTransformer())
     }
 
-    func testTimeout() async throws {
+    @Test func timeout() async throws {
         try await withThrowingDiscardingTaskGroup { group in
             let clock = TestClock()
             let transport = InspectableTransport()
@@ -87,16 +88,16 @@ final class IntegrationTests: XCTestCase {
 
             clock.advance(by: .seconds(30))
             await sleepCalls.next()  // export
-            XCTAssertEqual(transport.transported.load(ordering: .relaxed), 0)
-            XCTAssertEqual(transport.errored.load(ordering: .relaxed), 1)
-            let errors = transport.errors.withLockedValue { $0 }
-            XCTAssertTrue(errors.first is CancellationError)
+            #expect(transport.transported.load(ordering: .relaxed) == 0)
+            #expect(transport.errored.load(ordering: .relaxed) == 1)
+            let errors = transport.errors.withLock { $0 }
+            #expect(errors.first is CancellationError)
 
             group.cancelAll()
         }
     }
 
-    func testBadRequest() async throws {
+    @Test func badRequest() async throws {
         try await withThrowingDiscardingTaskGroup { group in
             let clock = TestClock()
             let transport = InspectableTransport()
@@ -124,19 +125,17 @@ final class IntegrationTests: XCTestCase {
             await sleepCalls.next()
 
             await sleepCalls.next()  // export
-            XCTAssertEqual(transport.transported.load(ordering: .relaxed), 0)
-            XCTAssertEqual(transport.errored.load(ordering: .relaxed), 1)
-            let errors = transport.errors.withLockedValue { $0 }
-            let error = try XCTUnwrap(errors.first as? LokiResponseError)
-            XCTAssertEqual(error.response.status, .badRequest)
+            #expect(transport.transported.load(ordering: .relaxed) == 0)
+            #expect(transport.errored.load(ordering: .relaxed) == 1)
+            let errors = transport.errors.withLock { $0 }
+            let error = try #require(errors.first as? LokiResponseError)
+            #expect(error.response.status == .badRequest)
 
             group.cancelAll()
         }
     }
 
-    func runHappyPath(
-        _ transformer: LokiTransformer, file: StaticString = #filePath, line: UInt = #line
-    ) async throws {
+    func runHappyPath(_ transformer: LokiTransformer) async throws {
         try await withThrowingDiscardingTaskGroup { group in
             let clock = TestClock()
             let transport = InspectableTransport()
@@ -152,8 +151,9 @@ final class IntegrationTests: XCTestCase {
             group.addTask {
                 try await processor.run()
             }
-            let handler = LokiLogHandler(
+            var handler = LokiLogHandler(
                 label: "com.timozacherl.swift-log-loki-tests", processor: processor)
+            handler.lokiLabels["service.name"] = "ora"
             logLine(handler: handler)
             await sleepCalls.next()
 
@@ -164,8 +164,7 @@ final class IntegrationTests: XCTestCase {
             await sleepCalls.next()
 
             await sleepCalls.next()  // export
-            XCTAssertEqual(
-                transport.transported.load(ordering: .relaxed), 1, file: file, line: line)
+            #expect(transport.transported.load(ordering: .relaxed) == 1)
 
             group.cancelAll()
         }

@@ -13,7 +13,7 @@
 
 import NIOCore
 import NIOHTTP1
-import XCTest
+import Testing
 
 import struct Logging.Logger
 
@@ -43,7 +43,7 @@ final class TestTransport: LokiTransport {
     ) async throws {}
 }
 
-final class LokiLogHandlerTests: XCTestCase {
+@Suite struct LokiLogHandlerTests {
     let expectedLogMessage = "Testing swift-log-loki"
     let expectedSource = "swift-log"
     let expectedFile = "TestFile.swift"
@@ -52,7 +52,7 @@ final class LokiLogHandlerTests: XCTestCase {
     let expectedLabel = "test.swift-log"
     let expectedService = "LokiLogTests"
 
-    func testLog() async throws {
+    @Test func log() async throws {
         let transport = TestTransport()
         let transformer = TestTransformer()
         let clock = TestClock()
@@ -86,7 +86,7 @@ final class LokiLogHandlerTests: XCTestCase {
         processing.cancel()
     }
 
-    func testLogWithBiggerBatchSize() async throws {
+    @Test func logWithBiggerBatchSize() async throws {
         let transport = TestTransport()
         let transformer = TestTransformer()
         let clock = TestClock()
@@ -119,7 +119,7 @@ final class LokiLogHandlerTests: XCTestCase {
         clock.advance(by: .seconds(5))  // tick
         await sleepCalls.next()
 
-        XCTAssertNil(transformer.logs?.first)
+        #expect(transformer.logs?.first == nil)
 
         handler.log(
             level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
@@ -135,7 +135,7 @@ final class LokiLogHandlerTests: XCTestCase {
         processing.cancel()
     }
 
-    func testLogWithMaxInterval() async throws {
+    @Test func logWithMaxInterval() async throws {
         let transport = TestTransport()
         let transformer = TestTransformer()
         let clock = TestClock()
@@ -157,7 +157,7 @@ final class LokiLogHandlerTests: XCTestCase {
             source: expectedSource, file: expectedFile, function: expectedFunction,
             line: expectedLine)
         await sleepCalls.next()
-        XCTAssertNil(transformer.logs?.first)
+        #expect(transformer.logs?.first == nil)
 
         // move forward in time until max batch time interval is exceeded
         clock.advance(by: .seconds(5))  // tick
@@ -178,71 +178,69 @@ final class LokiLogHandlerTests: XCTestCase {
     func testMetadataPreparation() {
         let metadata1 = LokiLogHandler<TestClock>.prepareMetadata(
             base: [:], provider: .init({ [:] }), explicit: [:])
-        XCTAssertEqual(metadata1, [:])
+        #expect(metadata1 == [:])
         let metadata2 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: .init({ [:] }), explicit: [:])
-        XCTAssertEqual(metadata2, ["hello": "there"])
+        #expect(metadata2 == ["hello": "there"])
         let metadata3 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: .init({ ["provided": "metadata"] }), explicit: [:])
-        XCTAssertEqual(metadata3, ["hello": "there", "provided": "metadata"])
+        #expect(metadata3 == ["hello": "there", "provided": "metadata"])
         let metadata4 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: .init({ ["provided": "metadata"] }),
             explicit: ["explicit": "metadata"])
-        XCTAssertEqual(
-            metadata4, ["hello": "there", "provided": "metadata", "explicit": "metadata"])
+        #expect(
+            metadata4 == ["hello": "there", "provided": "metadata", "explicit": "metadata"])
         let metadata5 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: nil, explicit: ["explicit": "metadata"])
-        XCTAssertEqual(metadata5, ["hello": "there", "explicit": "metadata"])
+        #expect(metadata5 == ["hello": "there", "explicit": "metadata"])
         let metadata6 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: nil, explicit: nil)
-        XCTAssertEqual(metadata6, ["hello": "there"])
+        #expect(metadata6 == ["hello": "there"])
         let metadata7 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: .init({ ["hello": "how are you"] }), explicit: nil)
-        XCTAssertEqual(metadata7, ["hello": "how are you"])
+        #expect(metadata7 == ["hello": "how are you"])
         let metadata8 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: .init({ ["hello": "how are you"] }),
             explicit: ["hello": "I am fine"])
-        XCTAssertEqual(metadata8, ["hello": "I am fine"])
+        #expect(metadata8 == ["hello": "I am fine"])
         var handler = LokiLogHandler(
             label: "test", processor: .init(configuration: .init(lokiURL: "")))
         handler[metadataKey: "key"] = "value"
-        XCTAssertEqual(handler.metadata, ["key": "value"])
-        XCTAssertEqual(handler[metadataKey: "key"], "value")
+        #expect(handler.metadata == ["key": "value"])
+        #expect(handler[metadataKey: "key"] == "value")
     }
 
     func checkIfLogExists(
         for transformer: TestTransformer, file: StaticString = #filePath, line: UInt = #line
     ) throws {
-        let firstLog = try XCTUnwrap(transformer.logs?.first, file: file, line: line)
+        let firstLog = try #require(transformer.logs?.first)
 
-        XCTAssert(firstLog.line.contains(expectedLogMessage), file: file, line: line)
-        XCTAssert(
-            firstLog.line.contains(Logger.Level.error.rawValue.uppercased()), file: file, line: line
-        )
-        XCTAssertNotNil(firstLog.timestamp, file: file, line: line)
-        XCTAssert(
+        #expect(firstLog.line.contains(expectedLogMessage))
+        #expect(firstLog.line.contains(Logger.Level.error.rawValue.uppercased()))
+        #expect(firstLog.timestamp != nil)
+        #expect(
             transformer.labels?.contains(where: { key, value in
                 value == expectedSource && key == "source"
-            }) ?? false, file: file, line: line)
-        XCTAssert(
+            }) ?? false)
+        #expect(
             transformer.labels?.contains(where: { key, value in
                 value == expectedFile && key == "file"
-            }) ?? false, file: file, line: line)
-        XCTAssert(
+            }) ?? false)
+        #expect(
             transformer.labels?.contains(where: { key, value in
                 value == expectedFunction && key == "function"
-            }) ?? false, file: file, line: line)
-        XCTAssert(
+            }) ?? false)
+        #expect(
             transformer.labels?.contains(where: { key, value in
                 value == String(expectedLine) && key == "line"
-            }) ?? false, file: file, line: line)
-        XCTAssert(
+            }) ?? false)
+        #expect(
             transformer.labels?.contains(where: { key, value in
                 value == expectedLabel && key == "logger"
-            }) ?? false, file: file, line: line)
-        XCTAssert(
+            }) ?? false)
+        #expect(
             transformer.labels?.contains(where: { key, value in
                 value == expectedService && key == "service"
-            }) ?? false, file: file, line: line)
+            }) ?? false)
     }
 }
