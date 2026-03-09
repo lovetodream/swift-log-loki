@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
-
 struct Batch<Clock: _Concurrency.Clock> {
     var entries: [BatchEntry]
 

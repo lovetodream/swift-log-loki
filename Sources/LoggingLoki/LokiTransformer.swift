@@ -16,7 +16,11 @@ import NIOFoundationCompat
 import NIOHTTP1
 import Snappy
 
-import class Foundation.JSONEncoder
+#if canImport(FoundationEssentials)
+    import FoundationEssentials
+#else
+    import Foundation
+#endif
 
 protocol LokiTransformer: Sendable {
     func transform(_ entries: [BatchEntry], headers: inout HTTPHeaders) throws -> ByteBuffer

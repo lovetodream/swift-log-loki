@@ -13,7 +13,11 @@
 
 import Logging
 
-import struct Foundation.Date
+#if canImport(FoundationEssentials)
+    import FoundationEssentials
+#else
+    import Foundation
+#endif
 
 struct LokiLog {
     var timestamp: Date

@@ -61,7 +61,8 @@ public struct LokiLogProcessorConfiguration: Sendable {
 
     /// Indicates the format of log messages sent to Loki.
     public struct LogFormat: Sendable {
-        public typealias CustomFormatter = @Sendable (Logger.Level, Logger.Message, Logger.Metadata)
+        public typealias CustomFormatter =
+            @Sendable (Logger.Level, Logger.Message, Logger.Metadata)
             -> String
 
         enum Code {

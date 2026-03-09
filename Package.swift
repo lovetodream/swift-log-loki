@@ -25,7 +25,11 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
             ],
-            exclude: ["Proto/push.proto"]
+            exclude: ["Proto/push.proto"],
+            swiftSettings: [
+                .enableUpcomingFeature("MemberImportVisibility"),
+                .enableUpcomingFeature("InternalImportsByDefault"),
+            ]
         ),
         .testTarget(name: "LoggingLokiTests", dependencies: ["LoggingLoki"]),
     ]
