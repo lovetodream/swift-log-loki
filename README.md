@@ -64,9 +64,9 @@ try await withThrowingDiscardingTaskGroup { group in
 
 For more information visit the [API reference][Documentation].
 
-## Alternative
+## Alternatives
 
-If you're using [swift-otel](https://github.com/swift-otel/swift-otel), you can use their logging module instead of swift-log-loki. And if not, definitely check it out. 
+If you're using [swift-otel](https://github.com/swift-otel/swift-otel), you can leverage their logging module instead of swift-log-loki. And if not, definitely check it out. 
 
 ## License
 
