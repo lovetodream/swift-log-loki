@@ -13,10 +13,16 @@
 
 import AsyncAlgorithms
 import AsyncHTTPClient
-import Logging
+public import Logging
 import NIOHTTP1
-import ServiceLifecycle
+public import ServiceLifecycle
 import Synchronization
+
+#if canImport(FoundationEssentials)
+    import FoundationEssentials
+#else
+    import Foundation
+#endif
 
 /// A configuration object for ``LokiLogProcessor``.
 public struct LokiLogProcessorConfiguration: Sendable {

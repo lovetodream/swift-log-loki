@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+public import Logging
 
 #if canImport(FoundationEssentials)
-    import FoundationEssentials
+    public import FoundationEssentials
 #else
-    import Foundation
+    public import Foundation
 #endif
 
 /// ``LokiLogHandler`` is a logging backend for `Logging`.

@@ -11,6 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+    import FoundationEssentials
+#else
+    import Foundation
+#endif
+
 struct LokiStream: Encodable, Sendable {
     typealias Value = (String, String, [String: String]?)
 
