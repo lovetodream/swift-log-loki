@@ -1,9 +1,9 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 import PackageDescription
 
 let package = Package(
     name: "swift-log-loki",
-    platforms: [.macOS(.v15), .iOS(.v18), .tvOS(.v18), .watchOS(.v11), .visionOS(.v2)],
+    platforms: [.macOS(.v14), .iOS(.v17), .tvOS(.v17), .watchOS(.v10), .visionOS(.v1)],
     products: [
         .library(name: "LoggingLoki", targets: ["LoggingLoki"])
     ],
@@ -25,10 +25,20 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
             ],
-            exclude: ["Proto/push.proto"],
             swiftSettings: [
+                .strictMemorySafety(),
+                .treatAllWarnings(as: .error),
+                .swiftLanguageMode(.v6),
+                .enableExperimentalFeature("AvailabilityMacro=logLoki 1.0:macOS 14.0, iOS 17.0, watchOS 10.0, tvOS 17.0, visionOS 1.0"),
+
+                // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
+                .enableUpcomingFeature("ExistentialAny"),
+                // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
                 .enableUpcomingFeature("MemberImportVisibility"),
-                .enableUpcomingFeature("InternalImportsByDefault"),
+                // https://forums.swift.org/t/experimental-support-for-lifetime-dependencies-in-swift-6-2-and-beyond/78638
+                .enableExperimentalFeature("Lifetimes"),
+                // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0461-async-function-isolation.md
+                .enableUpcomingFeature("NonisolatedNonsendingByDefault")
             ]
         ),
         .testTarget(name: "LoggingLokiTests", dependencies: ["LoggingLoki"]),

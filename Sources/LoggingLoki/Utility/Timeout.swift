@@ -15,7 +15,7 @@ func withTimeout<ClockType: Clock, ChildTaskResult>(
     _ timeout: ClockType.Duration,
     priority: TaskPriority? = nil,
     clock: ClockType,
-    operation: @escaping @Sendable () async throws -> ChildTaskResult
+    operation: @escaping @Sendable @isolated(any) () async throws -> ChildTaskResult
 ) async rethrows -> ChildTaskResult where ChildTaskResult: Sendable {
     try await withThrowingTaskGroup(of: ChildTaskResult.self) { group in
         group.addTask(priority: priority) {
