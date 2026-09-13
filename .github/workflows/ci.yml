@@ -41,7 +41,7 @@ jobs:
 
   tests:
     container:
-      image: swift:6.4-jammy
+      image: swift:6.3-jammy
 
     runs-on: ubuntu-latest
 
