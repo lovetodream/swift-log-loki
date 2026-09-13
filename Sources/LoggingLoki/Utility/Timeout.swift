@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(logLoki 1.0, *)
 func withTimeout<ClockType: Clock, ChildTaskResult>(
     _ timeout: ClockType.Duration,
     priority: TaskPriority? = nil,

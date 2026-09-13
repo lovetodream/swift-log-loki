@@ -15,6 +15,7 @@ import NIOCore
 import NIOFoundationEssentialsCompat
 import NIOHTTP1
 import Snappy
+import SwiftProtobuf
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials

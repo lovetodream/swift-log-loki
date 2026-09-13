@@ -20,6 +20,7 @@ import Foundation
 #endif
 
 /// ``LokiLogHandler`` is a logging backend for `Logging`.
+@available(logLoki 1.0, *)
 public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable
 where Clock.Duration == Duration {
 

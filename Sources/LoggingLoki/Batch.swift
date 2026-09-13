@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(logLoki 1.0, *)
 struct Batch<Clock: _Concurrency.Clock> {
     var entries: [BatchEntry]
 

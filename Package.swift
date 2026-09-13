@@ -3,7 +3,6 @@ import PackageDescription
 
 let package = Package(
     name: "swift-log-loki",
-    platforms: [.macOS(.v14), .iOS(.v17), .tvOS(.v17), .watchOS(.v10), .visionOS(.v1)],
     products: [
         .library(name: "LoggingLoki", targets: ["LoggingLoki"])
     ],
@@ -29,7 +28,7 @@ let package = Package(
                 .strictMemorySafety(),
                 .treatAllWarnings(as: .error),
                 .swiftLanguageMode(.v6),
-                .enableExperimentalFeature("AvailabilityMacro=logLoki 1.0:macOS 14.0, iOS 17.0, watchOS 10.0, tvOS 17.0, visionOS 1.0"),
+                .enableExperimentalFeature("AvailabilityMacro=logLoki 1.0:macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0"),
 
                 // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
                 .enableUpcomingFeature("ExistentialAny"),

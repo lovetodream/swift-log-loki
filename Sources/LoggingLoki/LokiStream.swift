@@ -12,9 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(FoundationEssentials)
-    import FoundationEssentials
+import FoundationEssentials
 #else
-    import Foundation
+import Foundation
 #endif
 
 struct LokiStream: Encodable, Sendable {
