@@ -20,9 +20,9 @@ import ServiceLifecycle
 import Synchronization
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+    import FoundationEssentials
 #else
-import Foundation
+    import Foundation
 #endif
 
 /// A configuration object for ``LokiLogProcessor``.
@@ -69,7 +69,8 @@ public struct LokiLogProcessorConfiguration: Sendable {
 
     /// Indicates the format of log messages sent to Loki.
     public struct LogFormat: Sendable {
-        public typealias CustomFormatter = @Sendable (Logger.Level, Logger.Message, Logger.Metadata)
+        public typealias CustomFormatter =
+            @Sendable (Logger.Level, Logger.Message, Logger.Metadata)
             -> String
 
         enum Code {
@@ -305,14 +306,14 @@ where Clock.Duration == Duration {
 }
 
 @available(logLoki 1.0, *)
-public extension LokiLogProcessor where Clock == ContinuousClock {
+extension LokiLogProcessor where Clock == ContinuousClock {
     /// Creates a new processor used to send logs to Loki with the given configuration.
     ///
     /// The processor can be used on multiple ``LokiLogHandler``s,
     /// it will manage the logs accordingly.
     ///
     /// - Parameter configuration: A configuration object used to setup the processors behaviour.
-    init(configuration: Configuration) {
+    public init(configuration: Configuration) {
         let transformer: any LokiTransformer =
             switch configuration.encoding.code {
             case .json:

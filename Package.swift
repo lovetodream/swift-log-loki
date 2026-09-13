@@ -28,7 +28,9 @@ let package = Package(
                 .strictMemorySafety(),
                 .treatAllWarnings(as: .error),
                 .swiftLanguageMode(.v6),
-                .enableExperimentalFeature("AvailabilityMacro=logLoki 1.0:macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0"),
+                .enableExperimentalFeature(
+                    "AvailabilityMacro=logLoki 1.0:macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0"
+                ),
 
                 // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
                 .enableUpcomingFeature("ExistentialAny"),
@@ -37,7 +39,7 @@ let package = Package(
                 // https://forums.swift.org/t/experimental-support-for-lifetime-dependencies-in-swift-6-2-and-beyond/78638
                 .enableExperimentalFeature("Lifetimes"),
                 // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0461-async-function-isolation.md
-                .enableUpcomingFeature("NonisolatedNonsendingByDefault")
+                .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             ]
         ),
         .testTarget(name: "LoggingLokiTests", dependencies: ["LoggingLoki"]),
