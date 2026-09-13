@@ -1,6 +1,9 @@
 // swift-tools-version: 6.2
 import PackageDescription
 
+let availability =
+    "AvailabilityMacro=logLoki 1.0:macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0"
+
 let package = Package(
     name: "swift-log-loki",
     products: [
@@ -33,9 +36,7 @@ let package = Package(
                 .strictMemorySafety(),
                 .treatAllWarnings(as: .error),
                 .swiftLanguageMode(.v6),
-                .enableExperimentalFeature(
-                    "AvailabilityMacro=logLoki 1.0:macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0"
-                ),
+                .enableExperimentalFeature(availability),
 
                 // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
                 .enableUpcomingFeature("ExistentialAny"),
@@ -47,6 +48,10 @@ let package = Package(
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             ]
         ),
-        .testTarget(name: "LoggingLokiTests", dependencies: ["LoggingLoki"]),
+        .testTarget(
+            name: "LoggingLokiTests",
+            dependencies: ["LoggingLoki"],
+            swiftSettings: [.enableExperimentalFeature(availability)]
+        ),
     ]
 )

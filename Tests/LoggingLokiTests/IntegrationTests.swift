@@ -21,6 +21,7 @@ import func Foundation.getenv
 
 @testable import LoggingLoki
 
+@available(logLoki 1.0, *)
 final class InspectableTransport: LokiTransport {
     let actual = HTTPClient.shared
 
@@ -51,15 +52,21 @@ final class BadRequestTransformer: LokiTransformer {
 }
 
 @Suite struct IntegrationTests {
-    @Test func protobufHappyPath() async throws {
+    @Test
+    @available(logLoki 1.0, *)
+    func protobufHappyPath() async throws {
         try await runHappyPath(LokiProtobufTransformer())
     }
 
-    @Test func jsonHappyPath() async throws {
+    @Test
+    @available(logLoki 1.0, *)
+    func jsonHappyPath() async throws {
         try await runHappyPath(LokiJSONTransformer())
     }
 
-    @Test func timeout() async throws {
+    @Test
+    @available(logLoki 1.0, *)
+    func timeout() async throws {
         try await withThrowingDiscardingTaskGroup { group in
             let clock = TestClock()
             let transport = InspectableTransport()
@@ -97,7 +104,9 @@ final class BadRequestTransformer: LokiTransformer {
         }
     }
 
-    @Test func badRequest() async throws {
+    @Test
+    @available(logLoki 1.0, *)
+    func badRequest() async throws {
         try await withThrowingDiscardingTaskGroup { group in
             let clock = TestClock()
             let transport = InspectableTransport()
@@ -135,6 +144,7 @@ final class BadRequestTransformer: LokiTransformer {
         }
     }
 
+    @available(logLoki 1.0, *)
     func runHappyPath(_ transformer: LokiTransformer) async throws {
         try await withThrowingDiscardingTaskGroup { group in
             let clock = TestClock()
@@ -171,16 +181,18 @@ final class BadRequestTransformer: LokiTransformer {
         }
     }
 
+    @available(logLoki 1.0, *)
     func logLine(handler: LokiLogHandler<TestClock>) {
         handler.log(
-            level: .error,
-            message: "oh, something bad happened",
-            metadata: ["log": "swift"],
-            source: "log-loki",
-            file: #filePath,
-            function: #function,
-            line: #line
-        )
+            event: .init(
+                level: .error,
+                message: "oh, something bad happened",
+                metadata: ["log": "swift"],
+                source: "log-loki",
+                file: #filePath,
+                function: #function,
+                line: #line
+            ))
     }
 }
 

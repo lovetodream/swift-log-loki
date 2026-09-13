@@ -15,8 +15,11 @@ import Testing
 
 @testable import LoggingLoki
 
-@Suite struct LokiLogProcessorConfigurationTests {
-    @Test func lokiURLConstruction() {
+@Suite
+struct LokiLogProcessorConfigurationTests {
+    @Test
+    @available(logLoki 1.0, *)
+    func lokiURLConstruction() {
         var configuration1 = LokiLogProcessorConfiguration(lokiURL: "http://localhost:3100")
         #expect(configuration1._lokiURL == "http://localhost:3100/loki/api/v1/push")
         configuration1.lokiURL = "http://localhost:3200/"

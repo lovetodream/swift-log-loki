@@ -16,7 +16,9 @@ import Testing
 @testable import LoggingLoki
 
 @Suite struct LokiLogProcessorTests {
-    @Test func logFmtFormat() {
+    @Test
+    @available(logLoki 1.0, *)
+    func logFmtFormat() {
         let configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
             logFormat: .logfmt
@@ -36,7 +38,9 @@ import Testing
         #expect(formatted.line.contains(#"message="My log message""#))
     }
 
-    @Test func customFormat() {
+    @Test
+    @available(logLoki 1.0, *)
+    func customFormat() {
         let configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
             logFormat: .custom({ level, message, metadata in
@@ -58,7 +62,9 @@ import Testing
         )
     }
 
-    @Test func logFmtFormatEmptyMetadata() {
+    @Test
+    @available(logLoki 1.0, *)
+    func logFmtFormatEmptyMetadata() {
         var configuration = LokiLogProcessorConfiguration(
             lokiURL: "http://localhost:3100",
             logFormat: .logfmt
