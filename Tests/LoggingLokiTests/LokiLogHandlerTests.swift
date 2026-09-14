@@ -210,8 +210,8 @@ final class TestTransport: LokiTransport {
             error: TestMetadataError())
         #expect(
             metadata2 == [
-                "hello": "there", "error.type": "LoggingLokiTests.TestMetadataError",
-                "error.message": "TestMetadataError()",
+                "hello": "there", "error_type": "LoggingLokiTests.TestMetadataError",
+                "error_message": "TestMetadataError()",
             ])
         let metadata3 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: .init({ ["provided": "metadata"] }), explicit: [:],
@@ -228,8 +228,8 @@ final class TestTransport: LokiTransport {
         #expect(
             metadata5 == [
                 "hello": "there", "explicit": "metadata",
-                "error.type": "LoggingLokiTests.TestMetadataError",
-                "error.message": "TestMetadataError()",
+                "error_type": "LoggingLokiTests.TestMetadataError",
+                "error_message": "TestMetadataError()",
             ])
         let metadata6 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: nil, explicit: nil, error: nil)

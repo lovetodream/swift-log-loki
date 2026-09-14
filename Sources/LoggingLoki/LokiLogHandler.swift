@@ -153,8 +153,8 @@ where Clock.Duration == Duration {
         }
 
         if let error {
-            metadata["error.message"] = "\(error)"
-            metadata["error.type"] = "\(String(reflecting: type(of: error)))"
+            metadata["error_message"] = "\(error)"
+            metadata["error_type"] = "\(String(reflecting: type(of: error)))"
         }
 
         return metadata
