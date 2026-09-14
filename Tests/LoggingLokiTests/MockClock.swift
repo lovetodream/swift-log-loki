@@ -26,6 +26,7 @@
 
 import Synchronization
 
+@available(logLoki 1.0, *)
 public final class TestClock: Clock, @unchecked Sendable {
     public struct Instant: InstantProtocol {
         public var offset: Duration

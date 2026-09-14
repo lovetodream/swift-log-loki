@@ -15,12 +15,12 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that you are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-struct Logproto_PushRequest: Sendable {
+nonisolated struct Logproto_PushRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -32,7 +32,7 @@ struct Logproto_PushRequest: Sendable {
   init() {}
 }
 
-struct Logproto_PushResponse: Sendable {
+nonisolated struct Logproto_PushResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -42,7 +42,7 @@ struct Logproto_PushResponse: Sendable {
   init() {}
 }
 
-struct Logproto_StreamAdapter: Sendable {
+nonisolated struct Logproto_StreamAdapter: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -59,7 +59,7 @@ struct Logproto_StreamAdapter: Sendable {
   init() {}
 }
 
-struct Logproto_LabelPairAdapter: Sendable {
+nonisolated struct Logproto_LabelPairAdapter: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -73,7 +73,7 @@ struct Logproto_LabelPairAdapter: Sendable {
   init() {}
 }
 
-struct Logproto_EntryAdapter: Sendable {
+nonisolated struct Logproto_EntryAdapter: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -105,9 +105,9 @@ struct Logproto_EntryAdapter: Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-fileprivate let _protobuf_package = "logproto"
+fileprivate nonisolated let _protobuf_package = "logproto"
 
-extension Logproto_PushRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Logproto_PushRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PushRequest"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}streams\0")
 
@@ -137,7 +137,7 @@ extension Logproto_PushRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   }
 }
 
-extension Logproto_PushResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Logproto_PushResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PushResponse"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -156,7 +156,7 @@ extension Logproto_PushResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   }
 }
 
-extension Logproto_StreamAdapter: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Logproto_StreamAdapter: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".StreamAdapter"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}labels\0\u{1}entries\0\u{1}hash\0")
 
@@ -196,7 +196,7 @@ extension Logproto_StreamAdapter: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   }
 }
 
-extension Logproto_LabelPairAdapter: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Logproto_LabelPairAdapter: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".LabelPairAdapter"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}value\0")
 
@@ -231,7 +231,7 @@ extension Logproto_LabelPairAdapter: SwiftProtobuf.Message, SwiftProtobuf._Messa
   }
 }
 
-extension Logproto_EntryAdapter: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Logproto_EntryAdapter: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".EntryAdapter"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}timestamp\0\u{1}line\0\u{1}structuredMetadata\0\u{1}parsed\0")
 

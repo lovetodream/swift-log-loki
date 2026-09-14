@@ -52,7 +52,9 @@ final class TestTransport: LokiTransport {
     let expectedLabel = "test.swift-log"
     let expectedService = "LokiLogTests"
 
-    @Test func log() async throws {
+    @Test
+    @available(logLoki 1.0, *)
+    func log() async throws {
         let transport = TestTransport()
         let transformer = TestTransformer()
         let clock = TestClock()
@@ -70,9 +72,12 @@ final class TestTransport: LokiTransport {
             label: expectedLabel, service: expectedService, processor: processor)
 
         handler.log(
-            level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
-            source: expectedSource, file: expectedFile, function: expectedFunction,
-            line: expectedLine)
+            event: .init(
+                level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
+                source: expectedSource, file: expectedFile, function: expectedFunction,
+                line: expectedLine
+            )
+        )
 
         clock.advance(by: .seconds(5))  // tick
         await sleepCalls.next()
@@ -86,7 +91,9 @@ final class TestTransport: LokiTransport {
         processing.cancel()
     }
 
-    @Test func logWithBiggerBatchSize() async throws {
+    @Test
+    @available(logLoki 1.0, *)
+    func logWithBiggerBatchSize() async throws {
         let transport = TestTransport()
         let transformer = TestTransformer()
         let clock = TestClock()
@@ -104,17 +111,23 @@ final class TestTransport: LokiTransport {
             label: expectedLabel, service: expectedService, processor: processor)
 
         handler.log(
-            level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
-            source: expectedSource, file: expectedFile, function: expectedFunction,
-            line: expectedLine)
+            event: .init(
+                level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
+                source: expectedSource, file: expectedFile, function: expectedFunction,
+                line: expectedLine
+            )
+        )
 
         clock.advance(by: .seconds(5))  // tick
         await sleepCalls.next()
 
         handler.log(
-            level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
-            source: expectedSource, file: expectedFile, function: expectedFunction,
-            line: expectedLine)
+            event: .init(
+                level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
+                source: expectedSource, file: expectedFile, function: expectedFunction,
+                line: expectedLine
+            )
+        )
 
         clock.advance(by: .seconds(5))  // tick
         await sleepCalls.next()
@@ -122,9 +135,12 @@ final class TestTransport: LokiTransport {
         #expect(transformer.logs?.first == nil)
 
         handler.log(
-            level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
-            source: expectedSource, file: expectedFile, function: expectedFunction,
-            line: expectedLine)
+            event: .init(
+                level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
+                source: expectedSource, file: expectedFile, function: expectedFunction,
+                line: expectedLine
+            )
+        )
 
         clock.advance(by: .seconds(5))  // tick
         await sleepCalls.next()
@@ -135,7 +151,9 @@ final class TestTransport: LokiTransport {
         processing.cancel()
     }
 
-    @Test func logWithMaxInterval() async throws {
+    @Test
+    @available(logLoki 1.0, *)
+    func logWithMaxInterval() async throws {
         let transport = TestTransport()
         let transformer = TestTransformer()
         let clock = TestClock()
@@ -153,9 +171,12 @@ final class TestTransport: LokiTransport {
         let handler = LokiLogHandler(
             label: expectedLabel, service: expectedService, processor: processor)
         handler.log(
-            level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
-            source: expectedSource, file: expectedFile, function: expectedFunction,
-            line: expectedLine)
+            event: .init(
+                level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
+                source: expectedSource, file: expectedFile, function: expectedFunction,
+                line: expectedLine
+            )
+        )
         await sleepCalls.next()
         #expect(transformer.logs?.first == nil)
 
@@ -167,41 +188,59 @@ final class TestTransport: LokiTransport {
 
 
         handler.log(
-            level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
-            source: expectedSource, file: expectedFile, function: expectedFunction,
-            line: expectedLine)
+            event: .init(
+                level: .error, message: "\(expectedLogMessage)", metadata: ["log": "swift"],
+                source: expectedSource, file: expectedFile, function: expectedFunction,
+                line: expectedLine
+            )
+        )
         await sleepCalls.next()
         try checkIfLogExists(for: transformer)
         processing.cancel()
     }
 
-    @Test func metadataPreparation() {
+    @Test
+    @available(logLoki 1.0, *)
+    func metadataPreparation() {
         let metadata1 = LokiLogHandler<TestClock>.prepareMetadata(
-            base: [:], provider: .init({ [:] }), explicit: [:])
+            base: [:], provider: .init({ [:] }), explicit: [:], error: nil)
         #expect(metadata1 == [:])
         let metadata2 = LokiLogHandler<TestClock>.prepareMetadata(
-            base: ["hello": "there"], provider: .init({ [:] }), explicit: [:])
-        #expect(metadata2 == ["hello": "there"])
+            base: ["hello": "there"], provider: .init({ [:] }), explicit: [:],
+            error: TestMetadataError())
+        #expect(
+            metadata2 == [
+                "hello": "there", "error_type": "LoggingLokiTests.TestMetadataError",
+                "error_message": "TestMetadataError()",
+            ])
         let metadata3 = LokiLogHandler<TestClock>.prepareMetadata(
-            base: ["hello": "there"], provider: .init({ ["provided": "metadata"] }), explicit: [:])
+            base: ["hello": "there"], provider: .init({ ["provided": "metadata"] }), explicit: [:],
+            error: nil)
         #expect(metadata3 == ["hello": "there", "provided": "metadata"])
         let metadata4 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: .init({ ["provided": "metadata"] }),
-            explicit: ["explicit": "metadata"])
+            explicit: ["explicit": "metadata"], error: nil)
         #expect(
             metadata4 == ["hello": "there", "provided": "metadata", "explicit": "metadata"])
         let metadata5 = LokiLogHandler<TestClock>.prepareMetadata(
-            base: ["hello": "there"], provider: nil, explicit: ["explicit": "metadata"])
-        #expect(metadata5 == ["hello": "there", "explicit": "metadata"])
+            base: ["hello": "there"], provider: nil, explicit: ["explicit": "metadata"],
+            error: TestMetadataError())
+        #expect(
+            metadata5 == [
+                "hello": "there", "explicit": "metadata",
+                "error_type": "LoggingLokiTests.TestMetadataError",
+                "error_message": "TestMetadataError()",
+            ])
         let metadata6 = LokiLogHandler<TestClock>.prepareMetadata(
-            base: ["hello": "there"], provider: nil, explicit: nil)
+            base: ["hello": "there"], provider: nil, explicit: nil, error: nil)
         #expect(metadata6 == ["hello": "there"])
         let metadata7 = LokiLogHandler<TestClock>.prepareMetadata(
-            base: ["hello": "there"], provider: .init({ ["hello": "how are you"] }), explicit: nil)
+            base: ["hello": "there"], provider: .init({ ["hello": "how are you"] }), explicit: nil,
+            error: nil)
         #expect(metadata7 == ["hello": "how are you"])
         let metadata8 = LokiLogHandler<TestClock>.prepareMetadata(
             base: ["hello": "there"], provider: .init({ ["hello": "how are you"] }),
-            explicit: ["hello": "I am fine"])
+            explicit: ["hello": "I am fine"], error: nil)
         #expect(metadata8 == ["hello": "I am fine"])
         var handler = LokiLogHandler(
             label: "test", processor: .init(configuration: .init(lokiURL: "")))
@@ -217,7 +256,6 @@ final class TestTransport: LokiTransport {
 
         #expect(firstLog.line.contains(expectedLogMessage))
         #expect(firstLog.line.contains(Logger.Level.error.rawValue.uppercased()))
-        #expect(firstLog.timestamp != nil)
         #expect(
             transformer.labels?.contains(where: { key, value in
                 value == expectedSource && key == "source"
@@ -244,3 +282,5 @@ final class TestTransport: LokiTransport {
             }) ?? false)
     }
 }
+
+struct TestMetadataError: Error {}

@@ -13,9 +13,9 @@
 
 import AsyncAlgorithms
 import AsyncHTTPClient
-public import Logging
+import Logging
 import NIOHTTP1
-public import ServiceLifecycle
+import ServiceLifecycle
 import Synchronization
 
 #if canImport(FoundationEssentials)
@@ -25,6 +25,7 @@ import Synchronization
 #endif
 
 /// A configuration object for ``LokiLogProcessor``.
+@available(logLoki 1.0, *)
 public struct LokiLogProcessorConfiguration: Sendable {
     /// The loki server URL, eg. `http://localhost:3100`.
     public var lokiURL: String {
@@ -155,6 +156,7 @@ public struct LokiLogProcessorConfiguration: Sendable {
 /// The service is sending logs as long as ``LokiLogProcessor/run()`` is not cancelled.
 ///
 /// It conforms to ``ServiceLifecycle.Service``.
+@available(logLoki 1.0, *)
 public struct LokiLogProcessor<Clock: _Concurrency.Clock>: Sendable, Service
 where Clock.Duration == Duration {
     final class _Storage: Sendable {
@@ -167,8 +169,8 @@ where Clock.Duration == Duration {
 
     private let configuration: Configuration
 
-    private let transport: LokiTransport
-    private let transformer: LokiTransformer
+    private let transport: any LokiTransport
+    private let transformer: any LokiTransformer
     private let clock: Clock
 
     private let storage = _Storage()
@@ -178,8 +180,8 @@ where Clock.Duration == Duration {
 
     init(
         configuration: Configuration,
-        transport: LokiTransport,
-        transformer: LokiTransformer,
+        transport: any LokiTransport,
+        transformer: any LokiTransformer,
         clock: Clock
     ) {
         self.configuration = configuration
@@ -302,6 +304,7 @@ where Clock.Duration == Duration {
 
 }
 
+@available(logLoki 1.0, *)
 extension LokiLogProcessor where Clock == ContinuousClock {
     /// Creates a new processor used to send logs to Loki with the given configuration.
     ///
@@ -310,7 +313,7 @@ extension LokiLogProcessor where Clock == ContinuousClock {
     ///
     /// - Parameter configuration: A configuration object used to setup the processors behaviour.
     public init(configuration: Configuration) {
-        let transformer: LokiTransformer =
+        let transformer: any LokiTransformer =
             switch configuration.encoding.code {
             case .json:
                 LokiJSONTransformer()

@@ -11,15 +11,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-public import Logging
+import Logging
 
 #if canImport(FoundationEssentials)
-    public import FoundationEssentials
+    import FoundationEssentials
 #else
-    public import Foundation
+    import Foundation
 #endif
 
 /// ``LokiLogHandler`` is a logging backend for `Logging`.
+@available(logLoki 1.0, *)
 public struct LokiLogHandler<Clock: _Concurrency.Clock>: LogHandler, Sendable
 where Clock.Duration == Duration {
 
@@ -34,10 +35,7 @@ where Clock.Duration == Duration {
     /// This value will be sent to Grafana Loki as the `service` label.
     public var service: String
     /// Static labels sent to Loki, which should not depend on the context of a log message.
-    public var lokiLabels: [String: String] {
-        didSet { updateLokiLabels() }
-    }
-    private var _lokiLabels: [String: String]
+    public var lokiLabels: [String: String]
 
     public var metadataProvider: Logger.MetadataProvider?
 
@@ -65,52 +63,36 @@ where Clock.Duration == Duration {
         self.lokiLabels = lokiLabels
         self.processor = processor
         self.metadataProvider = metadataProvider
-
-        self._lokiLabels = [:]
-        self.updateLokiLabels()
     }
 
-    /// This method is called when a `LogHandler` must emit a log message. There is no need for the `LogHandler` to
-    /// check if the `level` is above or below the configured `logLevel` as `Logger` already performed this check and
-    /// determined that a message should be logged.
+    /// The library calls this method when a log handler must emit a log message.
     ///
-    /// - parameters:
-    ///     - level: The log level the message was logged at.
-    ///     - message: The message to log. To obtain a `String` representation call `message.description`.
-    ///     - explicitMetadata: The metadata associated to this log message.
-    ///     - source: The source where the log message originated, for example the logging module.
-    ///     - file: The file the log message was emitted from.
-    ///     - function: The function the log line was emitted from.
-    ///     - line: The line the log message was emitted from.
-    public func log(
-        level: Logger.Level,
-        message: Logger.Message,
-        metadata explicitMetadata: Logger.Metadata?,
-        source: String,
-        file: String,
-        function: String,
-        line: UInt
-    ) {
+    /// There is no need for the `LogHandler` to check if the level is above or below the configured `logLevel`
+    /// as `Logger` already performed this check and determined that a message should be logged.
+    ///
+    /// - Parameter event: The log event containing the level, message, metadata, and source location.
+    public func log(event: LogEvent) {
         let effectiveMetadata = Self.prepareMetadata(
             base: self.metadata,
             provider: self.metadataProvider,
-            explicit: explicitMetadata
+            explicit: event.metadata,
+            error: event.error
         )
 
         let labels = [
             "service": service,
             "logger": label,
-            "source": source,
-            "file": file,
-            "function": function,
-            "line": String(line),
-        ].merging(_lokiLabels) { old, _ in old }  // message specific labels win!
+            "source": event.source,
+            "file": event.file,
+            "function": event.function,
+            "line": String(event.line),
+        ].merging(lokiLabels) { old, _ in old }  // message specific labels win!
 
         processor.addEntryToBatch(
             .init(
                 timestamp: .init(),
-                level: level,
-                message: message,
+                level: event.level,
+                message: event.message,
                 metadata: effectiveMetadata
             ), with: labels)
     }
@@ -121,7 +103,7 @@ where Clock.Duration == Duration {
     ///         only affect this very `LogHandler`.
     ///
     /// - parameters:
-    ///    - key: The key for the metadata item
+    ///    - metadataKey: The key for the metadata item
     public subscript(metadataKey key: String) -> Logger.Metadata.Value? {
         get {
             metadata[key]
@@ -148,13 +130,16 @@ where Clock.Duration == Duration {
     public var logLevel: Logger.Level = .info
 
     internal static func prepareMetadata(
-        base: Logger.Metadata, provider: Logger.MetadataProvider?, explicit: Logger.Metadata?
+        base: Logger.Metadata,
+        provider: Logger.MetadataProvider?,
+        explicit: Logger.Metadata?,
+        error: (any Error)?,
     ) -> Logger.Metadata {
         var metadata = base
 
         let provided = provider?.get() ?? [:]
 
-        guard !provided.isEmpty || !((explicit ?? [:]).isEmpty) else {
+        guard !provided.isEmpty || !((explicit ?? [:]).isEmpty) || error != nil else {
             // all per-log-statement values are empty
             return base
         }
@@ -167,32 +152,12 @@ where Clock.Duration == Duration {
             metadata.merge(explicit, uniquingKeysWith: { _, explicit in explicit })
         }
 
+        if let error {
+            metadata["error_message"] = "\(error)"
+            metadata["error_type"] = "\(String(reflecting: type(of: error)))"
+        }
+
         return metadata
     }
 
-    private mutating func updateLokiLabels() {
-        self._lokiLabels = self.lokiLabels.reduce(
-            into: [:],
-            { partialResult, pair in
-                partialResult[sanitizeKey(pair.key)] = pair.value
-            })
-    }
-
-    private func sanitizeKey(_ key: String) -> String {
-        let regex = /[a-zA-Z_:][a-zA-Z0-9_:]*/
-        // fast path
-        if (try? regex.wholeMatch(in: key)) != nil {
-            return key
-        }
-
-        var sanitizedKey = ""
-        for character in key {
-            if (try? regex.wholeMatch(in: "\(character)")) == nil {
-                sanitizedKey.append("_")
-            } else {
-                sanitizedKey.append(character)
-            }
-        }
-        return sanitizedKey
-    }
 }

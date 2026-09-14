@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOCore
-import NIOFoundationCompat
+import NIOFoundationEssentialsCompat
 import NIOHTTP1
 import Snappy
 import SwiftProtobuf
